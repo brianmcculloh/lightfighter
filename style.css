@@ -1,0 +1,536 @@
+:root {
+	--scrollbarBG: transparent;
+	--thumbBG: rgba(255,255,255,.4);	
+	--red: red;
+	--orange: darkorange;
+	--yellow: yellow;
+	--green: lime;
+	--blue: cyan;
+	--indigo: deepskyblue;
+	--violet: blueviolet;
+	--white: white;
+	--black: #333333;
+	--ultraviolet: magenta;
+}
+
+body {
+	font-family: 'Concert One', sans-serif;
+	color:#FFF;
+	font-weight:300;
+	font-size:16px;
+	background:#000;
+	text-shadow: 
+		1px 1px 0px rgba(0, 0, 0, 1), 
+		1px -1px 0px rgba(0, 0, 0, 1), 
+		-1px 1px 0px rgba(0, 0, 0, 1), 
+		-1px -1px 0px rgba(0, 0, 0, 1), 
+		0px 0px 5px rgba(0, 0, 0, .7);
+	background-size:cover;
+	background-position:center center;
+	background-repeat:no-repeat;
+	text-transform:capitalize;
+	image-rendering: pixelated;
+}
+body::-webkit-scrollbar {
+	display:none;
+}
+* {
+	box-sizing:border-box;
+}
+a, a:link, a:visited, a:active { text-decoration:none; transition:all .3s; }
+a:active {transition:none!important;}
+a:hover { text-decoration:none; }
+img {border:none;}
+h1, h2, h3, h4, h5, h6 {font-weight:300; margin:0px; padding:0px 0px; text-transform:capitalize; }
+input[type="text"] {
+	background:rgba(0,0,0,.5);
+	color:white;
+	font-size:12px;
+	display:block;
+	font-weight:100;
+	border:1px solid white;
+	padding:10px 15px;
+	margin:0;
+}
+::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  color:white;
+}
+::-moz-placeholder { /* Firefox 19+ */
+  color:white;
+}
+:-ms-input-placeholder { /* IE 10+ */
+  color:white;
+}
+:-moz-placeholder { /* Firefox 18- */
+  color:white;
+}
+*:focus {
+    outline: none;
+}
+.unavailable {
+	pointer-events:none !important;
+}
+.scrollbar::-webkit-scrollbar {
+	width: 11px;
+}
+.scrollbar {
+	scrollbar-width: thin;
+	scrollbar-color: var(--thumbBG) var(--scrollbarBG);
+}
+.scrollbar::-webkit-scrollbar-track {
+	background: var(--scrollbarBG);
+}
+.scrollbar::-webkit-scrollbar-thumb {
+	background-color: var(--thumbBG) ;
+	border-radius: 6px;
+	border: 3px solid var(--scrollbarBG);
+}
+
+
+
+ 
+#game-loading {
+	position:fixed;
+	top:0;
+	left:0;
+	height:100vh;
+	width:100vw;
+	background:#000;
+	z-index:9999999;
+	opacity:1;
+	/*display:flex;*/
+	display:none;
+	flex-wrap:wrap;
+	align-content:center;
+	align-items:center;
+	justify-content:center;
+	flex-direction:column;
+	gap:20px;
+}
+#game-loading {
+	z-index:99999999;
+}
+#game-loading.hidden {
+	opacity:0;
+	pointer-events:none;
+	transition:all 1s;
+}
+.game-loading-bar {
+	position:absolute;
+	left:50%;
+	top:50%;
+	height:3px;
+	width:80%;
+	margin-top:-1px;
+	margin-left:-40%;
+	border-radius:2px;
+	background:hsl(8, 100%, 60%, .3);
+}
+.game-loading-progress {
+	position:absolute;
+	top:0;
+	height:3px;
+	width:0;
+	left:0;
+	background:hsl(8, 100%, 60%, 1);
+	transition:1s ease-in-out;
+}
+.game-loading-progress.loaded {
+	width:100%;
+}
+.game-loading-progress .glow {
+    width:150px;
+    max-width:100%;
+    height:100%;
+    float:right;
+}
+.game-loading-progress .glow::before,
+.game-loading-progress .glow::after {
+	content:'';
+	display:block;
+	position:relative;
+	border-radius:0px 2px 2px 0px;
+}
+.game-loading-progress .glow::before {
+	background:transparent;
+	height:100%;
+	box-shadow:0px 0px 35px 2px hsl(8, 100%, 60%, 1), 0px 0px 25px 1px hsl(8, 100%, 60%, 1), 0px 0px 15px 0 hsl(8, 100%, 60%, 1), 0 0 7px 0 hsl(8, 100%, 60%, 1);
+	z-index:-5;
+}
+.game-loading-progress .glow::after {
+	background: linear-gradient(to right, #000 0%, transparent 100%);
+	height: calc(100% + 40px + 40px);
+	width: calc(100% + 40px);
+	top: -40px;
+	left: -40px;
+	z-index: -3;
+}
+
+.button {
+	border:1px solid white;
+	background:black;
+	display:inline-block;
+	padding:20px;
+	cursor:pointer;
+	text-align:center;
+}
+
+#shop {
+	position:absolute;
+	z-index:99;
+	top:20px;
+	left:20px;
+	width:78vw;
+	height:calc(100vh - 40px);
+	border:1px solid white;
+	background:black;
+	padding:20px;
+	display:none;
+	flex-direction:column;
+}
+#shop.shown {
+	display:flex;
+}
+#shop .boosters, #shop .packs, #shop h1 {
+	flex-basis:100%;
+	display:flex;
+	gap:10px;
+}
+
+#overworld {
+	align-items:center;
+	justify-content:center;
+}
+
+.modal {
+	position:fixed;
+	top:20px;
+	left:20px;
+	width:78vw;
+	height:calc(100vh - 40px);
+	z-index:999;
+	display:none;
+	background:black;
+	border:1px solid white;
+	padding:20px;
+	flex-direction:column;
+	gap:10px;
+}
+.modal.shown {
+	display:flex;
+}
+.modal .items {
+	display:flex;
+	gap:10px;
+	justify-content:flex-start;
+	flex-wrap:wrap;
+	align-content:flex-start;
+	overflow:auto;
+	padding-bottom:100px;
+}
+.modal .done {
+	position:absolute;
+	bottom:10px;
+	left:10px;
+}
+#deck.modal {
+	z-index:9999;
+}
+#end-game {
+	z-index:99999;
+}
+
+
+
+
+#enemy {
+	display:flex;
+	gap:10px;
+	position:absolute;
+	top:20px;
+	left:20px;
+}
+#enemy .info {
+	border:1px solid white;
+	width:15vw;
+	height:200px;
+	padding:20px;
+}
+#enemy .enemy-ship {
+	width:62vw;
+	height:90px;
+}
+#enemy .ship {
+	border:1px solid white;
+	height:90px;
+}
+
+#score {
+	position:absolute;
+	top:150px;
+	left:35vw;
+	display:flex;
+	gap:20px;
+	flex-wrap:wrap;
+	width:300px;
+}
+#score .hand-name, #score .damage-amounts {
+	flex-basis:100%;
+	text-align:center;
+	justify-content:center;
+	display:flex;
+	gap:20px;
+}
+#score .number {
+	border:1px solid white;
+	padding:20px;
+	width:140px;	
+	height:80px;
+	font-size:40px;
+	display:flex;
+	align-items:center;
+}
+#score .number.damage {
+	justify-content:flex-end;
+}
+
+#boosters {
+	position:absolute;
+	top:20px;
+	right:20px;
+	width:18vw;
+	border:1px solid white;
+	height:calc(60vh - 30px);
+	display:flex;
+	flex-direction:column;
+	gap:10px;
+	padding:10px;
+}
+#boosters .booster-slot {
+	border:1px solid white;
+	height:100px;
+	padding:20px;
+	background:black;
+	transition:all .2s;
+}
+#boosters .booster-slot.active {
+	background:blue;
+}
+
+#game-info {
+	position:absolute;
+	bottom:20px;
+	right:20px;
+	border:1px solid white;
+	padding:20px;
+	height:calc(40vh - 40px);
+	width:18vw;
+	display:flex;
+	flex-wrap:wrap;
+	gap:10px;
+	flex-direction:column;
+}
+#game-info .attack, #game-info .discard, #game-info .lives {
+	display:flex;
+}
+
+
+
+#player {
+	position:absolute;
+	bottom:20px;
+	left:20px;
+	gap:10px;
+	display:flex;
+	flex-wrap:wrap;
+	width:79vw;
+}
+#player .ship-wrapper {
+	display:flex;
+	gap:10px;
+	width:100%;
+}
+#player .attack, #player .discard {
+	width:120px;
+	height:100px;
+	border:1px solid white;
+	padding:20px;
+	display:flex;
+	justify-content:center;
+	flex-wrap:wrap;
+	text-align:center;
+	cursor:pointer;
+}
+#player .attack div, #player .discard div {
+	width:100%;
+}
+#player .attack span, #player .discard span {
+	font-size:30px;
+}
+#player .ship {
+	border:1px solid white;
+	height:100px;
+	padding:20px;
+	flex-basis:calc(100% - 280px);
+}
+#player #guns {
+	display:flex;
+	gap:10px;
+	width:100%;
+	justify-content:center;
+}
+#player .gun-slot {
+	border:1px solid white;
+	height:220px;
+	width:170px;
+	padding:10px;
+}
+
+#cards, #packs {
+	display:flex;
+	gap:5px;
+	justify-content:center;
+	position:absolute;
+	top:50%;
+	transform:translateY(-120px);
+	left:100px;
+	width:66vw;
+}
+.card {
+	height:200px;
+	width:150px;
+	border:1px solid white;
+	padding:20px 10px;
+	cursor:pointer;
+	transition:all .2s;
+	transform:translateY(0);
+	display:flex;
+	justify-content:center;
+	flex-direction:column;
+	align-items:center;
+}
+.card.active {
+	transform:translateY(-20px);
+}
+.card span {
+	display:block;
+}
+.card span.name {
+	font-size:26px;
+	display:none;
+}
+.card span.card-type {
+	width:80px;
+	height:80px;
+	background:black;
+}
+.card[data-type="plasma_cell"] span.card-type {
+	border-radius:50%;
+}
+.card[data-type="dark_matter"] span.card-type {
+	width: 0;
+	height: 0;
+	background:transparent;
+	border-left: 40px solid transparent;
+	border-right: 40px solid transparent;
+	border-bottom: 80px solid black;
+}
+.card[data-type="quantum_shard"] span.card-type {
+	position: relative;
+	width: 54px;
+	box-sizing: content-box;
+	border-width: 50px 18px 0;
+	border-style: solid;
+	border-color: black transparent;
+	background:none;
+	transform:translateY(50px);
+}
+.card[data-type="quantum_shard"] span.card-type:before {
+	content: "";
+	position: absolute;
+	height: 0;
+	width: 0;
+	top: -85px;
+	left: -18px;
+	border-width: 0 45px 35px;
+	border-style: solid;
+	border-color: transparent transparent black;
+}
+.card[data-type="gravity_wave"] span.card-type {
+	position: relative;
+	width: 100px;
+	height: 90px;
+	background:none;
+}
+.card[data-type="gravity_wave"] span.card-type:before,
+.card[data-type="gravity_wave"] span.card-type:after {
+  position: absolute;
+  content: "";
+  left: 50px;
+  top: 0;
+  width: 50px;
+  height: 80px;
+  background: black;
+  border-radius: 50px 50px 0 0;
+  transform: rotate(-45deg);
+  transform-origin: 0 100%;
+}
+.card[data-type="gravity_wave"] span.card-type:after {
+  left: 0;
+  transform: rotate(45deg);
+  transform-origin: 100% 100%;
+}
+
+.card[data-color="red"] {
+	background:var(--red);
+}
+.card[data-color="orange"] {
+	background:var(--orange);
+}
+.card[data-color="yellow"] {
+	background:var(--yellow);
+}
+.card[data-color="green"] {
+	background:var(--green);
+}
+.card[data-color="blue"] {
+	background:var(--blue);
+}
+.card[data-color="indigo"] {
+	background:var(--indigo);
+}
+.card[data-color="violet"] {
+	background:var(--violet);
+}
+.card[data-color="white"] {
+	background:var(--white);
+}
+.card[data-color="black"] {
+	background:var(--black);
+}
+.card[data-color="ultraviolet"] {
+	background:var(--ultraviolet);
+}
+.pack {
+	height:200px;
+	width:150px;
+	border:3px solid white;
+	padding:20px;
+	cursor:pointer;
+	
+}
+.pack span {
+	display:block;
+}
+
+
+.fade-in {
+    animation: fadeIn 1.5s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+
