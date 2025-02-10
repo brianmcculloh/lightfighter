@@ -1,0 +1,1 @@
+Lightfighter is my latest passion project. It's a Balatro-inspired deck-building roguelike. It's still very much a work in progress, so no promises it'll actually run at any given moment. But once I get the kinks ironed out, I'm planning a full Steam release. Feel like living dangerously? Give it a try—just don't say I didn't warn you!
