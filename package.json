@@ -1,0 +1,44 @@
+{
+  "name": "lightfighter",
+  "version": "0.1.0",
+  "description": "A card builder from space",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brianmcculloh/lightfighter.git"
+  },
+  "author": "Brian McCulloh",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/brianmcculloh/lightfighter/issues"
+  },
+  "homepage": "https://github.com/brianmcculloh/lightfighter#readme",
+  "devDependencies": {
+    "electron": "^29.2.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.spewnicorn.lightfighter",
+    "mac": {
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    }
+  },
+  "dependencies": {
+    "decimal.js": "^10.4.3"
+  },
+  "keywords": [],
+  "type": "module"
+}
