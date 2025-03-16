@@ -108,7 +108,11 @@ export async function init() {
 function manualLoad() {
     // Manual adding of boosters and system hearts for dev purposes
     let boosters = [
-        //'green_scoring',
+        'double_right',
+        'red_scoring',
+        'double_right',
+        'red_scoring'
+        
     ];
     let hearts = [
         //'attack',
@@ -620,6 +624,11 @@ function appendBoosterInfo(element, item) {
     itemType.textContent = item.type;
     element.appendChild(itemType);
 
+    let itemFired = document.createElement('span');
+    itemFired.classList.add('fired');
+    itemFired.innerHTML = `Fired <span class="fired-count">${item.timesFired ? item.timesFired : 0}</span> times`;
+    element.appendChild(itemFired);
+
     let amountsWrapper = document.createElement('div');
     amountsWrapper.classList.add('amounts-wrapper');
     element.appendChild(amountsWrapper);
@@ -930,7 +939,6 @@ export async function stowEquippedCards() {
 
 }
 
-
 export async function playEquippedCards() {
 
     game.temp.currentContext = 'played';
@@ -1136,9 +1144,46 @@ function checkProcChance(booster) {
 }
 
 async function applyBoosters() {
-    let initialQueue = [];
+    // Clear any previous mapping
+    game.temp.multiplierMapping = {};
+
+    // Array of booster groups that we want to check
+    const boosterGroups = [game.slots.bridgeCards, game.slots.engineeringCards, game.slots.armoryCards];
+
+    // Process each group for chained multiplier boosters based on having a multiplier attribute.
+    boosterGroups.forEach(group => {
+        let i = 0;
+        while (i < group.length) {
+            // If the current booster has a multiplier attribute, start a chain.
+            if (group[i].multiplier !== undefined && group[i].multiplier !== null) {
+                let chainMultiplier = group[i].multiplier;
+                let j = i + 1;
+                // Chain consecutive boosters that have a multiplier attribute.
+                while (j < group.length && group[j].multiplier !== undefined && group[j].multiplier !== null) {
+                    chainMultiplier *= group[j].multiplier;
+                    // Optionally, mark the multiplier booster itself with the cumulative chain value.
+                    game.temp.multiplierMapping[group[j].guid] = chainMultiplier;
+                    const el = document.querySelector(`[data-guid="${group[j].guid}"]`);
+                    if (el) el.classList.add("doubled");
+                    j++;
+                }
+                // If there's a booster immediately after the chain that does NOT have a multiplier,
+                // mark it with the current chain multiplier.
+                if (j < group.length && (group[j].multiplier === undefined || group[j].multiplier === null)) {
+                    game.temp.multiplierMapping[group[j].guid] = chainMultiplier;
+                    const targetEl = document.querySelector(`[data-guid="${group[j].guid}"]`);
+                    if (targetEl) targetEl.classList.add("doubled");
+                }
+                // Reset the chain: only the immediate booster following a chain is affected.
+                i = j + 1;
+            } else {
+                i++;
+            }
+        }
+    });
 
     // Build the initial queue of boosters to process
+    let initialQueue = [];
     const boosters = findBoosters();
     for (const booster of boosters) {
         if (shouldBoosterFire(booster)) {
@@ -1150,15 +1195,23 @@ async function applyBoosters() {
     let finalQueue = await filterDirectBoosters(initialQueue);
     finalQueue.reverse();
 
-    // Handle the double_retriggers booster
-    const multiplyBoosters = findBoosters('boosterAction', ['double_retriggers', 'double_power_values']);
+    // Handle the double_retriggers and other multipliers (unchanged)
+    const multiplyBoosters = findBoosters('boosterAction', [
+        'double_retriggers', 
+        'double_damage_values', 
+        'double_power_values', 
+        'double_pierce_values', 
+        'double_spread_values', 
+        'double_additive',
+        'double_multiplicative'
+    ]);
     if (multiplyBoosters.length > 0) {
         for (const multiplyBooster of multiplyBoosters) {
             document.querySelector(`[data-guid="${multiplyBooster.guid}"]`).classList.add("multiply");
         }
     }
 
-    // Process the final queue and handle visual feedback
+    // Process the queue
     await processQueue(finalQueue);
 
     // Clean up: remove the multiply class after processing
@@ -1167,6 +1220,15 @@ async function applyBoosters() {
             document.querySelector(`[data-guid="${multiplyBooster.guid}"]`).classList.remove("multiply");
         }
     }
+
+    // Remove the "doubled" class from all boosters in multiplierMapping and clear the mapping
+    for (const guid in game.temp.multiplierMapping) {
+        const el = document.querySelector(`[data-guid="${guid}"]`);
+        if (el) {
+            el.classList.remove("doubled");
+        }
+    }
+    game.temp.multiplierMapping = {};
 }
 
 function buildInitialQueue(queue, booster) {
@@ -1183,107 +1245,6 @@ function detectCircularDependency(booster1, booster2) {
 
     return booster1TriggersBooster2 && booster2TriggersBooster1;
 }
-
-/*
-function filterDirectBoosters(initialQueue) {
-    const finalQueue = [];
-    let circularFlags = new Set();
-
-    if (game.config.debug) {
-        console.log("Starting filterDirectBoosters...");
-        console.log("Initial Queue:", initialQueue);
-    }
-
-    // Check how many double_retriggers boosters are active
-    const multiplyBoosters = findBoostersWithAction('double_retriggers');
-    const doubleRetriggersCount = multiplyBoosters.length;
-
-    let currentTopLevelBooster = null;
-
-    for (const { booster, triggeredBy } of initialQueue) {
-        if (game.config.debug) console.log(`\nProcessing Booster: ${booster.id}`);
-        let retriggerChain = triggeredBy ? [triggeredBy] : [];
-
-        let retriggerTimes = booster.retriggerTimes || 1;
-
-        // Apply the multiplier based on the number of active double_retrigger boosters
-        if (doubleRetriggersCount > 0 && booster.retriggerCondition && Object.keys(booster.retriggerCondition).length > 0) {
-            retriggerTimes *= Math.pow(2, doubleRetriggersCount); // Double retrigger times for each active double_retrigger booster
-            if (game.config.debug) console.log(`   - Retrigger times for ${booster.id} multiplied by ${Math.pow(2, doubleRetriggersCount)} due to ${doubleRetriggersCount} double_retrigger boosters.`);
-        }
-
-        // Check if we're processing a new top-level booster
-        if (booster !== currentTopLevelBooster) {
-            currentTopLevelBooster = booster;
-            circularFlags = new Set(); // Reset circular flags for this new set of firings
-        }
-
-        if (!booster.retriggerCondition) {
-            // Direct booster
-            for (let i = 0; i < retriggerTimes; i++) {
-                if (game.config.debug) console.log(` - ${booster.id} is a direct booster, adding to finalQueue (${i + 1}).`);
-                finalQueue.unshift({ booster, triggeredBy: retriggerChain });
-            }
-        } else if (booster.retriggerCondition && Object.keys(booster.retriggerCondition).length > 0) {
-            // Retrigger booster
-            if (game.config.debug) console.log(` - ${booster.id} is a retrigger booster, checking for retriggered boosters...`);
-            
-            const retriggeredBoosters = findBoosters(null, null, booster.guid);
-            if (game.config.debug) console.log(` - Found ${retriggeredBoosters.length} boosters retriggered by ${booster.id}.`);
-
-            filterFurtherRetriggers(retriggeredBoosters, booster, retriggerChain, retriggerTimes, finalQueue, circularFlags, doubleRetriggersCount);
-        }
-    }
-
-    return finalQueue;
-}
-
-function filterFurtherRetriggers(retriggeredBoosters, currentBooster, retriggerChain, retriggerTimes, finalQueue, circularFlags, doubleRetriggersCount) {
-    for (const retriggeredBooster of retriggeredBoosters) {
-        if (game.config.debug) console.log(`   - Checking retriggered booster: ${retriggeredBooster.id}`);
-
-        if (detectCircularDependency(currentBooster, retriggeredBooster)) {
-            const circularKey = `${currentBooster.guid}-${retriggeredBooster.guid}`;
-            if (circularFlags.has(circularKey)) {
-                if (game.config.debug) console.log(`   - Circular dependency detected between ${currentBooster.id} and ${retriggeredBooster.id}, skipping further retriggers.`);
-                continue;
-            }
-            circularFlags.add(circularKey);
-        }
-
-        if (checkRetriggerCondition(retriggeredBooster, currentBooster) && shouldBoosterFire(retriggeredBooster)) {
-            if (game.config.debug) console.log(`   - Retriggered Booster: ${retriggeredBooster.id} passed retrigger condition and shouldBoosterFire() check`);
-
-            const updatedRetriggerChain = [...retriggerChain, currentBooster];
-
-            let timesToAdd = retriggerTimes;
-
-            // If the retriggered booster is also a retriggering booster, and double_retriggers is active
-            if (doubleRetriggersCount > 0 && retriggeredBooster.retriggerCondition && Object.keys(retriggeredBooster.retriggerCondition).length > 0) {
-                timesToAdd *= Math.pow(2, doubleRetriggersCount);
-                if (game.config.debug) console.log(`   - Retrigger times for ${retriggeredBooster.id} multiplied by ${Math.pow(2, doubleRetriggersCount)} due to ${doubleRetriggersCount} double_retrigger boosters.`);
-            }
-
-            if (!retriggeredBooster.retriggerCondition) {
-                // Direct booster after retriggering
-                for (let i = 0; i < timesToAdd; i++) {
-                    if (game.config.debug) console.log(`   - ${retriggeredBooster.id} is a direct booster, adding to finalQueue (${i + 1}).`);
-                    finalQueue.push({ booster: retriggeredBooster, triggeredBy: [...updatedRetriggerChain] });
-                }
-            } else if (retriggeredBooster.retriggerCondition && Object.keys(retriggeredBooster.retriggerCondition).length > 0) {
-                if (game.config.debug) console.log(`   - ${retriggeredBooster.id} is also a retrigger booster, continuing chain...`);
-
-                const furtherTriggeredBoosters = findBoosters(null, null, retriggeredBooster.guid);
-                if (game.config.debug) console.log(`     - Found ${furtherTriggeredBoosters.length} boosters retriggered by ${retriggeredBooster.id}.`);
-
-                filterFurtherRetriggers(furtherTriggeredBoosters, retriggeredBooster, updatedRetriggerChain, timesToAdd, finalQueue, circularFlags, doubleRetriggersCount);
-            }
-        } else {
-            if (game.config.debug) console.log(`   - ${retriggeredBooster.id} did not pass retrigger condition or shouldBoosterFire() check.`);
-        }
-    }
-}
-*/
 
 async function filterDirectBoosters(initialQueue) {
     const finalQueue = [];
@@ -1409,7 +1370,6 @@ function filterFurtherRetriggers(retriggeredBoosters, currentBooster, retriggerC
     }
 }
 
-
 async function processQueue(queue) {
     if (game.config.debug) {
         console.log("Starting processQueue...");
@@ -1428,25 +1388,42 @@ async function processQueue(queue) {
     for (const { booster, triggeredBy } of queue) {
         if (game.config.debug) console.log(`\nProcessing Booster: ${booster.id}`);
 
-        if (triggeredBy && triggeredBy.length > 0) {  // Ensure triggeredBy is not null and has elements
+        // Highlight boosters in the triggeredBy chain if they exist in the DOM
+        if (triggeredBy && triggeredBy.length > 0) {
             if (game.config.debug) console.log(` - Triggered By Chain: ${triggeredBy.map(b => b.id).join(' -> ')}`);
             triggeredBy.forEach(parentBooster => {
-                document.querySelector(`[data-guid="${parentBooster.guid}"]`).classList.add("trigger");
+                const parentEl = document.querySelector(`[data-guid="${parentBooster.guid}"]`);
+                if (parentEl) parentEl.classList.add("trigger");
             });
         } else {
             if (game.config.debug) console.log(" - No Triggered By Chain, this is a direct booster.");
         }
 
-        document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
+        // Highlight the booster if its element exists
+        let boosterEl = document.querySelector(`[data-guid="${booster.guid}"]`);
+        if (boosterEl) {
+            boosterEl.classList.add("active");
+        }
 
         // Process the booster power
         await processBoosterPower(booster);
 
-        // Remove highlights after processing
-        document.querySelector(`[data-guid="${booster.guid}"]`).classList.remove("active");
+        // Increase count of booster.timesFired (defaulting to 0 if undefined)
+        booster.timesFired = (booster.timesFired || 0) + 1;
+
+        // If the booster element exists, update the "fired" span and remove the "active" class
+        if (boosterEl) {
+            const firedCountSpan = boosterEl.querySelector('.fired .fired-count');
+            if (firedCountSpan) {
+                firedCountSpan.textContent = booster.timesFired;
+            }
+            boosterEl.classList.remove("active");
+        }        
+
         if (triggeredBy && triggeredBy.length > 0) {
             triggeredBy.forEach(parentBooster => {
-                document.querySelector(`[data-guid="${parentBooster.guid}"]`).classList.remove("trigger");
+                const parentEl = document.querySelector(`[data-guid="${parentBooster.guid}"]`);
+                if (parentEl) parentEl.classList.remove("trigger");
             });
         }
 
@@ -1531,7 +1508,7 @@ async function processBoosterPower(booster) {
 
 async function processBooster(booster, cardElement = false) {
     // don't allow injectors to process when not in combat mode
-    if(booster.type === 'injector' && game.temp.currentContext !== 'combat') return;
+    if (booster.type === 'injector' && game.temp.currentContext !== 'combat') return;
     // Wait a bit to visually show the card being affected
     await new Promise(resolve => setTimeout(resolve, game.config.cardDelay)); 
     let procBooster = false;
@@ -1555,91 +1532,156 @@ async function processBooster(booster, cardElement = false) {
         ? Math.round(booster.xp * 100) / 100
         : (typeof booster.xp === 'string' ? booster.xp : 0);
 
-    // deal with special values
-    if(typeof boosterDamage === 'string') {
-        switch(boosterDamage) {
+    // deal with special values for boosterDamage
+    if (typeof boosterDamage === 'string') {
+        switch (boosterDamage) {
             case 'highest_level_card':
                 // Find the card with the highest level
                 const highestLevel = game.temp.gunCards.reduce((max, card) => {
                     return card.level > max ? card.level : max;
                 }, 0);
                 boosterDamage = highestLevel;
-            break;
+                break;
         }
     }
-    if(typeof boosterPower === 'string') {
-        switch(boosterPower) {
+    // deal with special values for boosterPower
+    if (typeof boosterPower === 'string') {
+        switch (boosterPower) {
             case 'highest_wavelength':
                 let highestCard = game.temp.gunCards.reduce((highest, card) => {
                     return COLOR_DAMAGE_SCALE[card.color] > COLOR_DAMAGE_SCALE[highest.color] ? card : highest;
                 });
                 boosterPower = COLOR_DAMAGE_SCALE[highestCard.color];
-            break;
+                break;
             case 'combo_frequency':
                 let comboType = document.querySelector('.combo-name span').getAttribute('data-type');
                 if (comboType && game.comboTypeLevels[comboType]) {
                     boosterPower = game.comboTypeLevels[comboType].played;
                 }
-            break;
+                break;
             case 'total_blue_levels':
                 const totalBlueLevel = game.temp.gunCards
                     .filter(card => card.color === 'blue') // Filter for blue cards only
                     .reduce((total, card) => total + card.level, 0); // Sum up the levels starting from 0
                 boosterPower = totalBlueLevel;
-            break;
+                break;
             case 'system_class':
                 boosterPower = game.data.system + game.data.class;
-            break;
+                break;
             case 'combined_card_level':
                 // Sum the levels of all played cards
                 const combinedLevel = game.temp.gunCards.reduce((total, card) => total + card.level, 0);
                 boosterPower = combinedLevel;
-            break;
+                break;
             case 'damage':
                 let currentDamage = parseFloat(document.querySelector('.number.damage').textContent.replace(/,/g, ''));
                 currentDamage = parseFloat(currentDamage.toFixed(0));
                 boosterPower = currentDamage;
-            break;
+                break;
             case 'highest_level_card':
                 // Find the card with the highest level
-                const highestLevel = game.temp.gunCards.reduce((max, card) => {
+                const highestLevelForPower = game.temp.gunCards.reduce((max, card) => {
                     return card.level > max ? card.level : max;
                 }, 0);
-                boosterPower = highestLevel;
-            break;
+                boosterPower = highestLevelForPower;
+                break;
+            case 'total_empty_slots': {
+                const emptyBridge = game.slots.bridgeSlots - game.slots.bridgeCards.length;
+                const emptyEngineering = game.slots.engineeringSlots - game.slots.engineeringCards.length;
+                const emptyArmory = game.slots.armorySlots - game.slots.armoryCards.length;
+                const totalEmpty = emptyBridge + emptyEngineering + emptyArmory + 1;
+                boosterPower = totalEmpty;
+                break;
+            }
         }
     }
-    if(typeof boosterPierce === 'string') {
-        switch(boosterPierce) {
+    // deal with special values for boosterPierce
+    if (typeof boosterPierce === 'string') {
+        switch (boosterPierce) {
             case 'draw_cards':
                 boosterPierce = game.arsenal.length * .1;
-            break;
+                break;
             case 'stow_cards':
                 boosterPierce = game.temp.stowCards.length * .2;
-            break;
+                break;
             case 'player_level':
                 boosterPierce = game.data.level;
-            break;
+                break;
             case 'highest_level_card':
-                // Find the card with the highest level
-                const highestLevel = game.temp.gunCards.reduce((max, card) => {
+                const highestLevelForPierce = game.temp.gunCards.reduce((max, card) => {
                     return card.level > max ? card.level : max;
                 }, 0);
-                boosterPierce = highestLevel;
-            break;
+                boosterPierce = highestLevelForPierce;
+                break;
+            case 'total_empty_slots': {
+                const emptyBridge = game.slots.bridgeSlots - game.slots.bridgeCards.length;
+                const emptyEngineering = game.slots.engineeringSlots - game.slots.engineeringCards.length;
+                const emptyArmory = game.slots.armorySlots - game.slots.armoryCards.length;
+                const totalEmpty = emptyBridge + emptyEngineering + emptyArmory + 1;
+                boosterPierce = totalEmpty;
+                break;
+            }
         }
     }
-    if(typeof boosterSpread === 'string') {
-        switch(boosterSpread) {
+    // deal with special values for boosterSpread
+    if (typeof boosterSpread === 'string') {
+        switch (boosterSpread) {
             case 'highest_level_card':
-                // Find the card with the highest level
-                const highestLevel = game.temp.gunCards.reduce((max, card) => {
+                const highestLevelForSpread = game.temp.gunCards.reduce((max, card) => {
                     return card.level > max ? card.level : max;
                 }, 0);
-                boosterSpread = highestLevel;
-            break;  
+                boosterSpread = highestLevelForSpread;
+                break;
         }
     }
+
+    // For additive boosters: if any booster with 'double_additive' is active and this booster is additive.
+    if (findBoosters('boosterAction', 'double_additive').length > 0 && booster.boosterAction !== 'double_additive') {
+        if (!booster.multiplicative) { // Only apply to additive boosters
+            boosterDamage *= 2;
+            boosterPower *= 2;
+            boosterPierce *= 2;
+            boosterSpread *= 2;
+        }
+    }
+
+    // For multiplicative boosters: if any booster with 'double_multiplicative' is active and this booster is multiplicative.
+    if (findBoosters('boosterAction', 'double_multiplicative').length > 0 && booster.boosterAction !== 'double_multiplicative') {
+        if (booster.multiplicative) { // Only apply to multiplicative boosters
+            boosterDamage *= 2;
+            boosterPower *= 2;
+            boosterPierce *= 2;
+            boosterSpread *= 2;
+        }
+    }
+
+    // If any booster with the respective boosterAction is active (and the current booster isn't itself that type), double the value.
+    if (findBoosters('boosterAction', 'double_damage_values').length > 0 && booster.boosterAction !== 'double_damage_values') {
+        boosterDamage *= 2;
+    }
+    if (findBoosters('boosterAction', 'double_power_values').length > 0 && booster.boosterAction !== 'double_power_values') {
+        boosterPower *= 2;
+    }
+    if (findBoosters('boosterAction', 'double_pierce_values').length > 0 && booster.boosterAction !== 'double_pierce_values') {
+        boosterPierce *= 2;
+    }
+    if (findBoosters('boosterAction', 'double_spread_values').length > 0 && booster.boosterAction !== 'double_spread_values') {
+        boosterSpread *= 2;
+    }
+
+    // Check if this booster has a multiplier from a chained multiplier booster
+    let chainMultiplier = 1;
+    if (game.temp.multiplierMapping && game.temp.multiplierMapping[booster.guid]) {
+        chainMultiplier = game.temp.multiplierMapping[booster.guid];
+    }
+    
+    // Apply the chain multiplier to the booster’s attributes
+    boosterDamage *= chainMultiplier;
+    boosterPower *= chainMultiplier;
+    boosterPierce *= chainMultiplier;
+    boosterSpread *= chainMultiplier;
+    boosterCredits *= chainMultiplier;
+    boosterXP *= chainMultiplier;
 
     let damage = parseFloat(document.querySelector('.number.damage').textContent.replace(/,/g, ''));
     damage = parseFloat(damage.toFixed(0));
@@ -1666,7 +1708,7 @@ async function processBooster(booster, cardElement = false) {
     let boosterElement = document.querySelector(`[data-guid="${booster.guid}"]`);
 
     // Damage is increasing
-    if(damageIncrease > damage) {
+    if (damageIncrease > damage) {
         procBooster = true;
         let amount = formatLargeNumber(damageIncrease);
         document.querySelector('.number.damage').classList.add("active");
@@ -1677,7 +1719,7 @@ async function processBooster(booster, cardElement = false) {
         boosterElement.querySelector('.damage').setAttribute('data-amount', newAmount);
     }
     // Power is increasing
-    if(powerIncrease > power) {
+    if (powerIncrease > power) {
         procBooster = true;
         let amount = formatLargeNumber(powerIncrease);
         document.querySelector('.number.power').classList.add("active");
@@ -1688,7 +1730,7 @@ async function processBooster(booster, cardElement = false) {
         boosterElement.querySelector('.power').setAttribute('data-amount', newAmount);
     }
     // Pierce is increasing
-    if(pierceIncrease > pierce) {
+    if (pierceIncrease > pierce) {
         procBooster = true;
         let amount = formatLargeNumber(pierceIncrease);
         document.querySelector('.number.pierce').classList.add("active");
@@ -1699,7 +1741,7 @@ async function processBooster(booster, cardElement = false) {
         boosterElement.querySelector('.pierce').setAttribute('data-amount', newAmount);
     }
     // Spread is increasing
-    if(spreadIncrease > spread) {
+    if (spreadIncrease > spread) {
         procBooster = true;
         let amount = formatLargeNumber(spreadIncrease);
         document.querySelector('.number.spread').classList.add("active");
@@ -1711,7 +1753,7 @@ async function processBooster(booster, cardElement = false) {
         boosterElement.querySelector('.spread').setAttribute('data-amount', newAmount);
     }
     // Credits are increasing
-    if(creditsIncrease > credits) {
+    if (creditsIncrease > credits) {
         procBooster = true;
         let amount = formatLargeNumber(creditsIncrease);
         document.querySelector('.stats .credits span').classList.add("active");
@@ -1723,7 +1765,7 @@ async function processBooster(booster, cardElement = false) {
         boosterElement.querySelector('.credits').setAttribute('data-amount', newAmount);
     }
     // XP is increasing
-    if(xpIncrease > xp) {
+    if (xpIncrease > xp) {
         procBooster = true;
         let amount = formatLargeNumber(xpIncrease);
         document.querySelector('.stats .xp span').classList.add("active");
@@ -1736,18 +1778,15 @@ async function processBooster(booster, cardElement = false) {
         checkLevel();
     }
 
-    if(procBooster) {
+    if (procBooster) {
         boosterElement.classList.add("active");
-        if(cardElement) {
+        if (cardElement) {
             cardElement.classList.add("active");
-
-            // TODO: check that this is working as expected
             fireAtEnemy(cardElement);
         }
     }
 
     await boosterAction(booster, cardElement);
-
     await improveBooster(booster);
 
     // Fetch new values from the DOM
@@ -1780,7 +1819,7 @@ async function processBooster(booster, cardElement = false) {
 
     // Wait a bit to visually show the card being affected
     await new Promise(resolve => setTimeout(resolve, game.config.cardDelay)); 
-    if(procBooster) {
+    if (procBooster) {
         boosterElement.classList.remove("active");
         if (cardElement) {
             cardElement.classList.remove("active");
@@ -1793,7 +1832,7 @@ async function processBooster(booster, cardElement = false) {
     document.querySelector('.stats .credits span').classList.remove("active");
     document.querySelector('.stats .xp span').classList.remove("active");
 
-    if(booster.type === 'injector') {
+    if (booster.type === 'injector') {
         let slot = boosterElement.parentNode;
         let update = false;
         destroyBooster(booster.guid, 'injector', slot, update);
@@ -1803,6 +1842,14 @@ async function processBooster(booster, cardElement = false) {
 async function boosterAction(booster, cardElement = false) {
     let boosterAction = booster.boosterAction !== undefined ? booster.boosterAction : false;
     if (!boosterAction) return false;
+    
+    // Check for actionChance. If none, default to 1.
+    let actionChance = (booster.actionChance !== undefined) ? booster.actionChance : 1;
+    // Generate a random number between 0 and 1. If it's greater than actionChance, skip processing.
+    if (randDecimal() > actionChance) {
+        return false;
+    }
+
     switch(boosterAction) {
         case 'upgrade_high_combo':
             if(cardElement) cardElement.classList.add("active"); // Visually mark the card as being affected by the booster
@@ -1810,14 +1857,14 @@ async function boosterAction(booster, cardElement = false) {
             upgradeHighestLevelCombo();
         break;
         case 'upgrade_random_combo':
-            if(cardElement) cardElement.classList.add("active"); // Visually mark the card as being affected by the booster
+            if(cardElement) cardElement.classList.add("active");
             document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
             upgradeRandomCombo();
         break;
         case 'upgrade_played_combo':
             let comboType = document.querySelector('.combo-name span').getAttribute('data-type');
             if (comboType && game.comboTypeLevels[comboType]) {
-                if(cardElement) cardElement.classList.add("active"); // Visually mark the card as being affected by the booster
+                if(cardElement) cardElement.classList.add("active");
                 document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
                 updateComboLevel(comboType, 1);
                 console.log(`Upgraded ${comboType} to level ${game.comboTypeLevels[comboType].level}`);
@@ -1828,7 +1875,7 @@ async function boosterAction(booster, cardElement = false) {
         case 'upgrade_stowed_combo':
             let stowedComboType = document.querySelector('.combo-name span').getAttribute('data-type');
             if (stowedComboType && game.comboTypeLevels[stowedComboType]) {
-                if(cardElement) cardElement.classList.add("active"); // Visually mark the card as being affected by the booster
+                if(cardElement) cardElement.classList.add("active");
                 document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
                 updateComboLevel(stowedComboType, 1);
                 console.log(`Upgraded ${stowedComboType} to level ${game.comboTypeLevels[stowedComboType].level}`);
@@ -1837,12 +1884,10 @@ async function boosterAction(booster, cardElement = false) {
             }
         break;
         case 'upgrade_random_played_card':
-            // Select a random card from the played cards
             const randomIndex = Math.floor(randDecimal() * game.temp.gunCards.length);
             const randomCard = game.temp.gunCards[randomIndex];
             const randomCardElement = document.querySelector(`#guns .card[data-guid="${randomCard.guid}"]`);
             if (randomCardElement) {
-                // Upgrade the level of the randomly selected card
                 updateCardLevel(randomCard, 1, randomCardElement);
                 document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
                 randomCardElement.classList.add("upgraded");
@@ -1853,122 +1898,77 @@ async function boosterAction(booster, cardElement = false) {
             }
         break;
         case 'upgrade_random_drawn_card':
-            // Select a random card from the played cards
             const randomHandIndex = Math.floor(randDecimal() * game.temp.handCards.length);
             const randomHandCard = game.temp.handCards[randomHandIndex];
             const randomHandCardElement = document.querySelector(`#cards .card[data-guid="${randomHandCard.guid}"]`);
             if (randomHandCardElement) {
-                // Upgrade the level of the randomly selected card
                 updateCardLevel(randomHandCard, 1, randomHandCardElement);
                 document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
                 randomHandCardElement.classList.add("upgraded");
                 await new Promise(resolve => setTimeout(resolve, game.config.cardDelay)); 
                 randomHandCardElement.classList.remove("upgraded");
             } else {
-                console.log('Could not find card element with data-guid: ', randomHandCard.guid, 'Tried to pull from game.temp.gunCards: ', game.temp.handCards);
+                console.log('Could not find card element with data-guid: ', randomHandCard.guid, 'Tried to pull from game.temp.handCards: ', game.temp.handCards);
             }
         break;
         case 'random_hand_special_card':
-            // Convert the specialWeights object into an array for weighted selection
             const handSpecialAttributes = Object.entries(game.data.specialWeights).map(([name, weight]) => ({
                 name,
                 weight
             }));
-
-            // Use weightedSelect to select a weighted random attribute
             const [handSelectedAttribute] = weightedSelect(handSpecialAttributes, 1);
-
-            // Filter cards in the hand that don't have the selected attribute
             const eligibleHandCards = game.temp.handCards.filter(card => !card[handSelectedAttribute.name]);
-
             if (eligibleHandCards.length === 0) {
                 console.log(`No eligible cards to apply the attribute: ${handSelectedAttribute.name}`);
                 break;
             }
-
-            // Choose a random card from the eligible cards
             const handSpecialCardIndex = Math.floor(randDecimal() * eligibleHandCards.length);
             const handSpecialCard = eligibleHandCards[handSpecialCardIndex];
             const handSpecialCardElement = document.querySelector(`#cards .card[data-guid="${handSpecialCard.guid}"]`);
-
             if (handSpecialCardElement) {
-                // Apply the selected attribute to the card
                 handSpecialCard[handSelectedAttribute.name] = true;
-
-                // Refresh the card's visuals to reflect the updated attribute
                 refreshCard(handSpecialCard);
-
-                // Visually highlight the booster and card for feedback
                 document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
                 handSpecialCardElement.classList.add("special");
-
-                // Add a delay for the visual feedback
                 await new Promise(resolve => setTimeout(resolve, game.config.cardDelay));
-
-                // Remove the special class after the delay
                 handSpecialCardElement.classList.remove("special");
             } else {
                 console.log('Could not find card element with data-guid: ', handSpecialCard.guid, 'Tried to pull from game.temp.handCards: ', game.temp.handCards);
             }
         break;
         case 'played_special_card':
-            // Convert the specialWeights object into an array for weighted selection
             const playedSpecialAttributes = Object.entries(game.data.specialWeights).map(([name, weight]) => ({
                 name,
                 weight
             }));
-        
-            // Use weightedSelect to select a weighted random attribute
             const [playedSelectedAttribute] = weightedSelect(playedSpecialAttributes, 1);
-        
-            // Filter cards in the scoring (played) cards that don't have the selected attribute
             const eligiblePlayedCards = game.temp.scoringCards.filter(card => !card[playedSelectedAttribute.name]);
-        
             if (eligiblePlayedCards.length === 0) {
                 console.log(`No eligible cards to apply the attribute: ${playedSelectedAttribute.name}`);
                 break;
             }
-        
-            // Choose a random card from the eligible cards
             const playedSpecialCardIndex = Math.floor(randDecimal() * eligiblePlayedCards.length);
             const playedSpecialCard = eligiblePlayedCards[playedSpecialCardIndex];
             const playedSpecialCardElement = document.querySelector(`#guns .card[data-guid="${playedSpecialCard.guid}"]`);
-        
             if (playedSpecialCardElement) {
-                // Apply the selected attribute to the card
                 playedSpecialCard[playedSelectedAttribute.name] = true;
-        
-                // Refresh the card's visuals to reflect the updated attribute
                 refreshCard(playedSpecialCard);
-        
-                // Visually highlight the booster and card for feedback
                 document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
                 playedSpecialCardElement.classList.add("special");
-        
-                // Add a delay for the visual feedback
                 await new Promise(resolve => setTimeout(resolve, game.config.cardDelay));
-        
-                // Remove the special class after the delay
                 playedSpecialCardElement.classList.remove("special");
             } else {
                 console.log('Could not find card element with data-guid: ', playedSpecialCard.guid, 'Tried to pull from game.temp.scoringCards: ', game.temp.scoringCards);
             }
-        break;        
+        break;
         case 'random_special_meta_increase':
-            // List of game data properties with their weights
             const gameDataProperties = Object.entries(game.data.specialWeights).map(([name, weight]) => ({
                 name,
                 weight
             }));            
-
-            // Use the weightedSelect function to choose one property based on weight
             const [selectedProperty] = weightedSelect(gameDataProperties, 1);
             const randomGameDataProperty = selectedProperty.name;
-
-            // Increase the chosen property by 1
             game.data[randomGameDataProperty] += 1;
-
-            // Map game properties to their corresponding DOM elements
             const propertyToClassMap = {
                 foilPower: 'foil',
                 holoPower: 'holo',
@@ -1976,33 +1976,19 @@ async function boosterAction(booster, cardElement = false) {
                 goldCredits: 'gold-leaf',
                 textureLevels: 'texture'
             };
-
             const statClass = propertyToClassMap[randomGameDataProperty];
             const statElement = document.querySelector(`.stats .${statClass} .total`);
-
-            // Update the DOM immediately
             statElement.textContent = (game.data[randomGameDataProperty] * game.data.specialMultiplier);
-
-            // Add active class for visual feedback
             statElement.classList.add("active");
             if (cardElement) cardElement.classList.add("active");
-
-            // Wait for visual effect
             await new Promise(resolve => setTimeout(resolve, game.config.cardDelay)); 
-
-            // Remove active class after delay
             statElement.classList.remove("active");
-
-            // Highlight the booster visually
             document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
-            break;
-
+        break;
         case 'upgrade_scoring_cards':
-            // Loop through all scoring cards and upgrade each one
             for (const scoringCard of game.temp.scoringCards) {
                 const scoringCardElement = document.querySelector(`#guns .card[data-guid="${scoringCard.guid}"]`);
                 if (scoringCardElement) {
-                    // Upgrade the level of the scoring card
                     updateCardLevel(scoringCard, 1, scoringCardElement);
                     document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
                     scoringCardElement.classList.add("upgraded");
@@ -2014,12 +2000,10 @@ async function boosterAction(booster, cardElement = false) {
             }
         break;
         case 'upgrade_green_cards':
-            // Loop through all green cards in the played cards
             for (const card of game.temp.gunCards) {
                 if (card.color === 'green') {
                     const greenCardElement = document.querySelector(`#guns .card[data-guid="${card.guid}"]`);
                     if (greenCardElement) {
-                        // Upgrade the level of the green card
                         updateCardLevel(card, 1, greenCardElement);
                         document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
                         greenCardElement.classList.add("upgraded");
@@ -2032,28 +2016,20 @@ async function boosterAction(booster, cardElement = false) {
             }
         break;
         case 'stow_wavelengths':
-            // Loop through each equipped gun card using for...of to properly handle async/await
             for (const card of game.temp.gunCards) {
-                // Increase the wavelength of the card if it's not already black
                 if (card.color !== 'black') {
                     const cardElement = document.querySelector(`#guns .card[data-guid="${card.guid}"]`);
                     const boosterElement = document.querySelector(`[data-guid="${booster.guid}"]`);
                     if (boosterElement) boosterElement.classList.add("active");
-                    
                     let currentColorIndex = RAINBOW_ORDER.indexOf(card.color);
                     let nextColorIndex = currentColorIndex + 1;
-
-                    // Ensure it does not go beyond 'black'
                     if (nextColorIndex < RAINBOW_ORDER.length) {
                         card.color = RAINBOW_ORDER[nextColorIndex];
                         if (cardElement) {
                             cardElement.classList.add("active");
                             cardElement.setAttribute('data-color', card.color);
                         }
-
-                        // Delay visual effect
                         await new Promise(resolve => setTimeout(resolve, game.config.cardDelay)); 
-
                         if (cardElement) cardElement.classList.remove("active");
                     }
                     if (boosterElement) boosterElement.classList.remove("active");
@@ -2061,55 +2037,35 @@ async function boosterAction(booster, cardElement = false) {
             }
         break;
         case 'stowed_special_card':
-            // Convert the specialWeights object into an array for weighted selection
             const specialAttributes = Object.entries(game.data.specialWeights).map(([name, weight]) => ({
                 name,
                 weight
             }));
-
-            // Use weightedSelect to select a weighted random attribute
             const [selectedAttribute] = weightedSelect(specialAttributes, 1);
-
-            // Filter cards that don't have the selected attribute
             const eligibleCards = game.temp.gunCards.filter(card => !card[selectedAttribute.name]);
-
             if (eligibleCards.length === 0) {
                 console.log(`No eligible cards to apply the attribute: ${selectedAttribute.name}`);
                 break;
             }
-
-            // Choose a random card from the eligible cards
             const stowedSpecialCardIndex = Math.floor(randDecimal() * eligibleCards.length);
             const stowedSpecialCard = eligibleCards[stowedSpecialCardIndex];
             const stowedSpecialCardElement = document.querySelector(`#guns .card[data-guid="${stowedSpecialCard.guid}"]`);
-
             if (stowedSpecialCardElement) {
-                // Apply the selected attribute to the card
                 stowedSpecialCard[selectedAttribute.name] = true;
-
-                // Refresh the card's visuals to reflect the updated attribute
                 refreshCard(stowedSpecialCard);
-
-                // Visually highlight the booster and card for feedback
                 document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
                 stowedSpecialCardElement.classList.add("special");
-
-                // Add a delay for the visual feedback
                 await new Promise(resolve => setTimeout(resolve, game.config.cardDelay));
-
-                // Remove the special class after the delay
                 stowedSpecialCardElement.classList.remove("special");
             } else {
                 console.log('Could not find card element with data-guid: ', stowedSpecialCard.guid, 'Tried to pull from game.temp.gunCards: ', game.temp.gunCards);
             }
         break;
         case 'stowed_upgrade_card':
-            // Select a random card from the played cards
             const stowedRandomIndex = Math.floor(randDecimal() * game.temp.gunCards.length);
             const stowedRandomCard = game.temp.gunCards[stowedRandomIndex];
             const stowedRandomCardElement = document.querySelector(`#guns .card[data-guid="${stowedRandomCard.guid}"]`);
             if (stowedRandomCardElement) {
-                // Upgrade the level of the randomly selected card
                 updateCardLevel(stowedRandomCard, 1, stowedRandomCardElement);
                 document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
                 stowedRandomCardElement.classList.add("upgraded");
@@ -2120,11 +2076,9 @@ async function boosterAction(booster, cardElement = false) {
             }
         break;
         case 'upgrade_stowed_cards':
-            // Loop through all stowed cards and upgrade each one
             for (const stowedCard of game.temp.gunCards) {
                 const stowedCardElement = document.querySelector(`#guns .card[data-guid="${stowedCard.guid}"]`);
                 if (stowedCardElement) {
-                    // Upgrade the level of the stowed card
                     updateCardLevel(stowedCard, 1, stowedCardElement);
                     document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
                     stowedCardElement.classList.add("upgraded");
@@ -2136,15 +2090,11 @@ async function boosterAction(booster, cardElement = false) {
             }
         break;
         case 'random_played_foil':
-            // Filter out cards that already have foil set to true
             const nonFoilCards = game.temp.handCards.filter(card => !card.foil);
-
             if (nonFoilCards.length > 0) {
-                // Select a random card from the non-foil cards
                 const specialIndex = Math.floor(randDecimal() * nonFoilCards.length);
                 const specialCard = nonFoilCards[specialIndex];
                 const specialCardElement = document.querySelector(`#cards .card[data-guid="${specialCard.guid}"]`);
-                
                 if (specialCardElement) {
                     specialCard.foil = true;
                     refreshCard(specialCard);
@@ -2160,15 +2110,11 @@ async function boosterAction(booster, cardElement = false) {
             }
         break;
         case 'random_played_holo':
-            // Filter out cards that already have foil set to true
             const nonHoloCards = game.temp.handCards.filter(card => !card.holo);
-
             if (nonHoloCards.length > 0) {
-                // Select a random card from the non-foil cards
                 const specialIndex = Math.floor(randDecimal() * nonHoloCards.length);
                 const specialCard = nonHoloCards[specialIndex];
                 const specialCardElement = document.querySelector(`#cards .card[data-guid="${specialCard.guid}"]`);
-                
                 if (specialCardElement) {
                     specialCard.holo = true;
                     refreshCard(specialCard);
@@ -2177,22 +2123,18 @@ async function boosterAction(booster, cardElement = false) {
                     await new Promise(resolve => setTimeout(resolve, game.config.cardDelay)); 
                     specialCardElement.classList.remove("special");
                 } else {
-                    console.log('Could not find card element with data-guid: ', specialCard.guid, 'Tried to pull from game.temp.gunCards: ', game.temp.gunCards);
+                    console.log('Could not find card element with data-guid: ', specialCard.guid, 'Tried to pull from game.temp.gunCards: ', game.temp.handCards);
                 }
             } else {
                 console.log('No non-holo cards available to apply foil.');
             }
         break;
         case 'random_played_sleeve':
-            // Filter out cards that already have foil set to true
             const nonSleeveCards = game.temp.handCards.filter(card => !card.sleeve);
-
             if (nonSleeveCards.length > 0) {
-                // Select a random card from the non-foil cards
                 const specialIndex = Math.floor(randDecimal() * nonSleeveCards.length);
                 const specialCard = nonSleeveCards[specialIndex];
                 const specialCardElement = document.querySelector(`#cards .card[data-guid="${specialCard.guid}"]`);
-                
                 if (specialCardElement) {
                     specialCard.sleeve = true;
                     refreshCard(specialCard);
@@ -2201,22 +2143,18 @@ async function boosterAction(booster, cardElement = false) {
                     await new Promise(resolve => setTimeout(resolve, game.config.cardDelay)); 
                     specialCardElement.classList.remove("special");
                 } else {
-                    console.log('Could not find card element with data-guid: ', specialCard.guid, 'Tried to pull from game.temp.gunCards: ', game.temp.gunCards);
+                    console.log('Could not find card element with data-guid: ', specialCard.guid, 'Tried to pull from game.temp.gunCards: ', game.temp.handCards);
                 }
             } else {
                 console.log('No non-sleeve cards available to apply foil.');
             }
         break;
         case 'random_played_gold_leaf':
-            // Filter out cards that already have foil set to true
             const nonGoldLeafCards = game.temp.handCards.filter(card => !card.gold_leaf);
-
             if (nonGoldLeafCards.length > 0) {
-                // Select a random card from the non-foil cards
                 const specialIndex = Math.floor(randDecimal() * nonGoldLeafCards.length);
                 const specialCard = nonGoldLeafCards[specialIndex];
                 const specialCardElement = document.querySelector(`#cards .card[data-guid="${specialCard.guid}"]`);
-                
                 if (specialCardElement) {
                     specialCard.gold_leaf = true;
                     refreshCard(specialCard);
@@ -2225,22 +2163,18 @@ async function boosterAction(booster, cardElement = false) {
                     await new Promise(resolve => setTimeout(resolve, game.config.cardDelay)); 
                     specialCardElement.classList.remove("special");
                 } else {
-                    console.log('Could not find card element with data-guid: ', specialCard.guid, 'Tried to pull from game.temp.gunCards: ', game.temp.gunCards);
+                    console.log('Could not find card element with data-guid: ', specialCard.guid, 'Tried to pull from game.temp.gunCards: ', game.temp.handCards);
                 }
             } else {
                 console.log('No non-gold leaf cards available to apply foil.');
             }
         break;
         case 'random_played_texture':
-            // Filter out cards that already have foil set to true
             const nonTextureCards = game.temp.handCards.filter(card => !card.texture);
-
             if (nonTextureCards.length > 0) {
-                // Select a random card from the non-foil cards
                 const specialIndex = Math.floor(randDecimal() * nonTextureCards.length);
                 const specialCard = nonTextureCards[specialIndex];
                 const specialCardElement = document.querySelector(`#cards .card[data-guid="${specialCard.guid}"]`);
-                
                 if (specialCardElement) {
                     specialCard.texture = true;
                     refreshCard(specialCard);
@@ -2249,12 +2183,90 @@ async function boosterAction(booster, cardElement = false) {
                     await new Promise(resolve => setTimeout(resolve, game.config.cardDelay)); 
                     specialCardElement.classList.remove("special");
                 } else {
-                    console.log('Could not find card element with data-guid: ', specialCard.guid, 'Tried to pull from game.temp.gunCards: ', game.temp.gunCards);
+                    console.log('Could not find card element with data-guid: ', specialCard.guid, 'Tried to pull from game.temp.gunCards: ', game.temp.handCards);
                 }
             } else {
                 console.log('No non-texture cards available to apply foil.');
             }
         break;
+        case 'destroy_self': {
+            const boosterElement = document.querySelector(`[data-guid="${booster.guid}"]`);
+            if (boosterElement) {
+                boosterElement.classList.add("destroying");
+                processConvertSacrifice(booster);
+                await new Promise(resolve => setTimeout(resolve, game.config.destroyDelay));
+                const boosterSlot = boosterElement.parentNode;
+                destroyBooster(booster.guid, booster.type, boosterSlot, true);
+            } else {
+                console.error("Booster element not found for destroy_self:", booster.guid);
+            }
+        }
+        break;
+        case 'destroy_common': {
+            let commonBoosters = findBoosters('rarity', 'common');
+            commonBoosters = commonBoosters.filter(b => b.guid !== booster.guid);
+            if (commonBoosters.length === 0) {
+                console.log("No eligible common booster found to destroy.");
+                break;
+            }
+            const randomIndex = Math.floor(Math.random() * commonBoosters.length);
+            const selectedCommon = commonBoosters[randomIndex];
+            const commonEl = document.querySelector(`[data-guid="${selectedCommon.guid}"]`);
+            if (commonEl) {
+                commonEl.classList.add("destroying");
+                processConvertSacrifice(booster);
+                await new Promise(resolve => setTimeout(resolve, game.config.destroyDelay));
+                const boosterSlot = commonEl.parentNode;
+                destroyBooster(selectedCommon.guid, selectedCommon.type, boosterSlot, true);
+            } else {
+                console.error("Common booster element not found for destroy_random_common:", selectedCommon.guid);
+            }
+            break;
+        }
+    }
+}
+
+/**
+ * Processes any active "convert_sacrifice" boosters.
+ * For each such booster, this function:
+ *   - Adds an "active" class to its DOM element,
+ *   - Increases game.data.spread by the number of times the current booster has fired,
+ *   - Updates the spread display in the DOM,
+ *   - And then removes the "active" class from the convert_sacrifice boosters.
+ *
+ * @param {object} booster - The booster being sacrificed (its timesFired property is used).
+ */
+function processConvertSacrifice(booster) {
+    // Find all boosters with the "convert_sacrifice" action
+    const sacrificeBoosters = findBoosters('boosterAction', 'convert_sacrifice');
+    if (sacrificeBoosters && sacrificeBoosters.length > 0) {
+        // Add "active" class to each convert_sacrifice booster element
+        sacrificeBoosters.forEach(sacBooster => {
+            const el = document.querySelector(`[data-guid="${sacBooster.guid}"]`);
+            if (el) {
+                el.classList.add("active");
+            }
+        });
+        
+        // Calculate how much to add to the spread (defaulting to 0 if undefined)
+        const additionalSpread = booster.timesFired || 0;
+        // Update game data (rounding to 2 decimals)
+        game.data.spread = Math.round((game.data.spread + additionalSpread) * 100) / 100;
+        
+        // Update the DOM element that displays spread
+        const spreadEl = document.querySelector('.number.spread');
+        if (spreadEl) {
+            spreadEl.classList.add("active");
+            spreadEl.textContent = formatLargeNumber(game.data.spread);
+        }
+        
+        // Remove "active" class from all convert_sacrifice booster elements
+        sacrificeBoosters.forEach(sacBooster => {
+            const el = document.querySelector(`[data-guid="${sacBooster.guid}"]`);
+            if (el) {
+                el.classList.remove("active");
+            }
+        });
     }
 }
 
@@ -4493,7 +4505,6 @@ function destroyBooster(boosterGuid, type, boosterSlot, update = true) {
         console.error('Booster or Injector not found:', boosterGuid);
     }
 }
-
 
 function upgradeHighestLevelCombo() {
     let highestLevel = 0;

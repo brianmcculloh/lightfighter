@@ -35,6 +35,7 @@ export const ALL_BOOSTERS = [
         procChance: .25             // number between 0 and 1 - chance this booster procs per attack
         cardChance: .25             // number between 0 and 1 - chance this booster procs per attack for each card affected
         boosterAction: 'upgrade_high_combo'  // the action to perform when conditions are met
+        actionChance:               // number between 0 and 1 - chance this booster's action procs
         selfImprove: 'damage',      // singular or array: ['damage', 'power', 'pierce', 'spread', 'xp', 'credits', 'retriggerTimes'] - any booster attribute that is a number
         improveAmount: 5,           // singular or array: [5, 10, .1] - if selfImprove is an array, this MUST be an array of equal length
         improveEvent: 'crit'        // the event that triggers the improveCondition
@@ -47,20 +48,15 @@ export const ALL_BOOSTERS = [
                                         - {'cardColor': ['red']} triggers cardColor: ['red', 'orange']
         retriggerTimes: 2           // number of times to retrigger the booster
         retriggerChance: .5         // chance that this booster will retrigger its target - NOT CURRENTLY USED
+        timesFired: 0               // the number of times this booster has fired
+        multiplier: 1               // will multiply the damage, power, pierce, spread, xp, credits, and multiplier effects of the booster immediately to its right
         description: '...'          // what will display in the tooltip
     },
 
 
     BOOSTER IDEA QUEUE
 
-    small chance to destroy a common booster and add x to spread
-    x10 power. small chance to destroy itself each time it procs.
-    x10 power. small chance to destroy a random common relic
-    small chance to double the effects of the booster to the right
-    all booster power values are doubled (should visually display like double retriggers)
-    double the effects of all non-multiplicative (additive) boosters
-    multiply power, pierce, and spread but no self-improve (too many self-improving boosters)
-    double all damage/power/pierce/spread values
+    double the effects of the booster to the right
     
     
 
@@ -81,11 +77,11 @@ export const ALL_BOOSTERS = [
     gravity wave - gold leaf archetype
     nano swarm - texture archetype
                                         TOTAL   COMMON  UNCOMMON RARE LEGENDARY
-    Bridge (combo archetype):           58      24      19       13     2
-    Engineering (color archetype):      56      23      20       11     2
-    Armory (type archetype):            64      26      22       14     2
+    Bridge (combo archetype):           65      24      24       14     3
+    Engineering (color archetype):      63      23      23       14     3
+    Armory (type archetype):            65      26      22       14     3
 
-                                Total:  178
+                                Total:  193
 
     */
 
@@ -385,6 +381,26 @@ export const ALL_BOOSTERS = [
         retriggerCondition: {'context': 'stowed'},
         retriggerTimes: 1,
         description: 'Retrigger all boosters that target stowed cards <span class="description-retriggerTimes">1</span> time.'
+    },
+    {
+        id: 'multiply_power', 
+        type: 'bridge', 
+        rarity: 'uncommon', weight: 40, 
+        cardLevel: 0,
+        compareLevel: 'greater',
+        multiplicative: true,
+        power: 50,
+        description: 'x<span class="description-power">50</span> power.'
+    },
+    {
+        id: 'multiply_pierce', 
+        type: 'bridge', 
+        rarity: 'uncommon', weight: 40, 
+        cardLevel: 0,
+        compareLevel: 'greater',
+        multiplicative: true,
+        pierce: 10,
+        description: 'x<span class="description-pierce">10</span> pierce.'
     },
 
 
@@ -731,6 +747,16 @@ export const ALL_BOOSTERS = [
         retriggerCondition: {'rarity': 'rare'},
         retriggerTimes: 1,
         description: 'Retrigger all rare boosters <span class="description-retriggerTimes">1</span> time.'
+    },
+    {
+        id: 'multiply_spread', 
+        type: 'bridge', 
+        rarity: 'rare', weight: 20, 
+        cardLevel: 0,
+        compareLevel: 'greater',
+        multiplicative: true,
+        spread: 1.5,
+        description: 'x<span class="description-spread">1.5</span> spread.'
     },
 
 
@@ -1162,7 +1188,6 @@ export const ALL_BOOSTERS = [
         multiplicative: true,
         description: 'Multiply power equal to damage of highest wavelength card.'
     },
-    
 
     // armory
     {
@@ -1248,12 +1273,40 @@ export const ALL_BOOSTERS = [
         rarity: 'uncommon', weight: 60,
         customCondition: 'single_booster',
         to: 'scoringCards',
-        power: 1.1,
+        power: 'total_empty_slots',
+        pierce: 'total_empty_slots',
         multiplicative: true,
-        improveAmount: .1,
-        improveChance: .2,
-        selfImprove: 'power',
-        description: 'x<span class="description-power">1.1</span> power for every scoring card if this is the only booster in its group. 20% chance to increase power by <span class="description-power-improve">.1</span> each time this booster procs.'
+        description: 'x power for every scoring card equal to total number of empty booster slots + 1 if this is the only booster in its group.'
+    },
+    {
+        id: 'power_destroy_self', 
+        type: 'bridge', 
+        rarity: 'uncommon', weight: 70,
+        conditional: false, 
+        power: 10,
+        multiplicative: true,
+        actionChance: .05,
+        boosterAction: 'destroy_self',
+        description: 'x<span class="description-power">10</span> power. When this booster procs, 5% chance it sacrifices itself.'
+    },
+    {
+        id: 'power_destroy_common', 
+        type: 'bridge', 
+        rarity: 'uncommon', weight: 70,
+        conditional: false, 
+        power: 25,
+        multiplicative: true,
+        actionChance: .01,
+        boosterAction: 'destroy_common',
+        description: 'x<span class="description-power">25</span> power. When this booster procs, 1% chance it destroys a random common booster.'
+    },
+    {
+        id: 'sacrifice_converter', 
+        type: 'bridge', 
+        rarity: 'uncommon', weight: 60,
+        conditional: false, 
+        boosterAction: 'convert_sacrifice',
+        description: 'When a booster is sacrificed during combat, +spread equal to the total number of times that booster has fired throughout the run.'
     },
 
 
@@ -1287,12 +1340,30 @@ export const ALL_BOOSTERS = [
         rarity: 'uncommon', weight: 70,
         customCondition: 'single_booster',
         to: 'scoringCards',
-        power: 1.1,
+        power: 'total_empty_slots',
+        pierce: 'total_empty_slots',
         multiplicative: true,
-        improveAmount: .1,
-        improveChance: .2,
-        selfImprove: 'power',
-        description: 'x<span class="description-power">1.1</span> power for every scoring card if this is the only booster in its group. 20% chance to increase power by <span class="description-power-improve">.1</span> each time this booster procs.'
+        description: 'x power for every scoring card equal to total number of empty booster slots + 1 if this is the only booster in its group.'
+    },
+    {
+        id: 'sacrificial_spread', 
+        type: 'engineering', 
+        rarity: 'uncommon', weight: 50,
+        conditional: false, 
+        procChance: .1,
+        spread: 10,
+        boosterAction: 'destroy_self',
+        description: '10% chance for +10 spread. When this booster procs, it self-destructs.'
+    },
+    {
+        id: 'common_sacrifice', 
+        type: 'engineering', 
+        rarity: 'uncommon', weight: 50,
+        conditional: false, 
+        procChance: .05,
+        spread: 10,
+        boosterAction: 'destroy_common',
+        description: '5% chance for +10 spread. When this booster procs, it sacrifices a random common booster.'
     },
 
 
@@ -1334,12 +1405,10 @@ export const ALL_BOOSTERS = [
         rarity: 'uncommon', weight: 60,
         customCondition: 'single_booster',
         to: 'scoringCards',
-        power: 1.1,
+        power: 'total_empty_slots',
+        pierce: 'total_empty_slots',
         multiplicative: true,
-        improveAmount: .1,
-        improveChance: .2,
-        selfImprove: 'power',
-        description: 'x<span class="description-power">1.1</span> power for every scoring card if this is the only booster in its group. 20% chance to increase power by <span class="description-power-improve">.1</span> each time this booster procs.'
+        description: 'x power for every scoring card equal to total number of empty booster slots + 1 if this is the only booster in its group.'
     },
 
 
@@ -1423,13 +1492,47 @@ export const ALL_BOOSTERS = [
         description: '<span class="description-procChance">25</span>% chance of +1 level to played combo. 25% chance to increase chance this booster procs by <span class="description-procChance-improve">10</span>% when this booster procs.'
     },
     {
-        id: 'double_power_values', 
+        id: 'double_damage_values', 
         type: 'engineering', 
-        rarity: 'rare', weight: 6,
-        boosterAction: 'double_power_values',
+        rarity: 'rare', weight: 7,
+        boosterAction: 'double_damage_values',
         retriggerCondition: {},
         context: 'any',
-        description: 'Double the power values of all other boosters.'
+        description: 'Double the damage values of all other boosters.'
+    },
+    {
+        id: 'double_additive', 
+        type: 'engineering', 
+        rarity: 'rare', weight: 12,
+        boosterAction: 'double_additive',
+        retriggerCondition: {},
+        context: 'any',
+        description: 'Double the values of all additive boosters.'
+    },
+    {
+        id: 'double_multiplicative', 
+        type: 'engineering', 
+        rarity: 'rare', weight: 9,
+        boosterAction: 'double_multiplicative',
+        retriggerCondition: {},
+        context: 'any',
+        description: 'Double the values of all multiplicative boosters.'
+    },
+    {
+        id: 'double_right', 
+        type: 'engineering', 
+        rarity: 'rare', weight: 25,
+        conditional: false,
+        multiplier: 2,
+        description: 'Double the damage, power, pierce, spread, xp, credits, and multiplier effects of the booster to the right.'
+    },
+    {
+        id: 'triple_right', 
+        type: 'engineering', 
+        rarity: 'rare', weight: 10,
+        conditional: false,
+        multiplier: 3,
+        description: 'Triple the damage, power, pierce, spread, xp, credits, and multiplier effects of the booster to the right.'
     },
 
 
@@ -1463,6 +1566,43 @@ export const ALL_BOOSTERS = [
         context: 'stowed',
         boosterAction: 'upgrade_stowed_cards',
         description: '25% chance to upgrade all stowed cards.'
+    },
+
+
+    // LEGENDARY
+    // bridge
+    {
+        id: 'double_power_values', 
+        type: 'bridge', 
+        rarity: 'legendary', weight: 6,
+        boosterAction: 'double_power_values',
+        retriggerCondition: {},
+        context: 'any',
+        description: 'Double the power values of all other boosters.'
+    },
+
+
+    // engineering
+    {
+        id: 'double_pierce_values', 
+        type: 'engineering', 
+        rarity: 'legendary', weight: 5,
+        boosterAction: 'double_pierce_values',
+        retriggerCondition: {},
+        context: 'any',
+        description: 'Double the pierce values of all other boosters.'
+    },
+
+
+    // armory
+    {
+        id: 'double_spread_values', 
+        type: 'armory', 
+        rarity: 'legendary', weight: 4,
+        boosterAction: 'double_spread_values',
+        retriggerCondition: {},
+        context: 'any',
+        description: 'Double the spread values of all other boosters.'
     },
 
 
