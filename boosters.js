@@ -56,7 +56,7 @@ export const ALL_BOOSTERS = [
 
     BOOSTER IDEA QUEUE
 
-    double the effects of the booster to the right
+
     
     
 

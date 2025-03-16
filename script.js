@@ -108,11 +108,7 @@ export async function init() {
 function manualLoad() {
     // Manual adding of boosters and system hearts for dev purposes
     let boosters = [
-        'double_right',
-        'red_scoring',
-        'double_right',
-        'red_scoring'
-        
+        //'double_right',
     ];
     let hearts = [
         //'attack',

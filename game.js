@@ -99,7 +99,7 @@ const slots = {
   gunSlots: 5,
   bridgeSlots: 2,
   bridgeCards: [],
-  engineeringSlots: 4,
+  engineeringSlots: 2,
   engineeringCards: [],
   armorySlots: 2,
   armoryCards: [],
