@@ -1,298 +1,314 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
+  <head profile="http://gmpg.org/xfn/11">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
 
-<head profile="http://gmpg.org/xfn/11">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <title>LIGHTFIGHTER | Spewnicorn Games</title>
 
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <!-- begin style -->
 
-<title>LIGHTFIGHTER | Spewnicorn Games</title>
+    <link rel="stylesheet" href="style.css" type="text/css" media="screen" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-<!-- begin style -->
+    <script type="importmap">
+      {
+        "imports": {
+          "decimal.js": "https://cdn.jsdelivr.net/npm/decimal.js@10.4.3/decimal.mjs"
+        }
+      }
+    </script>
 
-<link rel="stylesheet" href="style.css" type="text/css" media="screen" />
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    <script type="text/javascript" src="vendor/howler.core.min.js"></script>
+    <script type="module" src="script.js"></script>
+    <script type="module" src="eventListeners.js"></script>
+  </head>
 
-<script type="importmap">
-  {
-    "imports": {
-      "decimal.js": "https://cdn.jsdelivr.net/npm/decimal.js@10.4.3/decimal.mjs"
-    }
-  }
-  </script>
-
-<script src="https://unpkg.com/@popperjs/core@2"></script>
-<script src="https://unpkg.com/tippy.js@6"></script>
-<script type="text/javascript" src="vendor/howler.core.min.js"></script>
-<script type="module" src="script.js"></script>
-<script type="module" src="eventListeners.js"></script>
-
-</head>
-
-<body>
-
-  <div id="game-loading">
-    
-    <div class="game-loading-bar">
-
-      <div class="game-loading-progress"><div class="glow"></div></div>
-
+  <body>
+    <div id="game-loading">
+      <div class="game-loading-bar">
+        <div class="game-loading-progress"><div class="glow"></div></div>
+      </div>
     </div>
 
-  </div>
+    <div id="game">
+      <div id="splash" class="modal shown">
+        <h1>Lightfighter</h1>
 
-  <div id="game">
+        <div class="button" id="continue-game">Continue</div>
 
-    <div id="splash" class="modal shown">
+        <div class="button shown" id="new-game">New Game</div>
 
-      <h1>Lightfighter</h1>
+        <div class="button" id="embark">Embark</div>
+      </div>
 
-      <div class="button" id="continue-game">Continue</div>
+      <div id="end-game" class="modal">
+        <h1>Game Over</h1>
+      </div>
 
-      <div class="button shown" id="new-game">New Game</div>
+      <div id="end-combat" class="modal">
+        <h1>Victory!</h1>
 
-      <div class="button" id="embark">Embark</div>
+        <div class="collect-credits">Collect <span></span> Credits</div>
 
-    </div>
+        <div class="gain-xp">Gain <span></span> XP</div>
 
-    <div id="end-game" class="modal">
+        <div class="button">Visit Hangar</div>
+      </div>
 
-      <h1>Game Over</h1>
+      <div id="selection-modal" class="modal scrollbar">
+        <h1>Select Card(s)</h1>
 
-    </div>
+        <div class="items"></div>
 
-    <div id="end-combat" class="modal">
+        <div class="buttons">
+          <div class="button done">DONE</div>
 
-      <h1>Victory!</h1>
+          <div class="button cancel">CANCEL</div>
+        </div>
+      </div>
 
-      <div class="collect-credits">Collect <span></span> Credits</div>
+      <div id="overworld" class="modal scrollbar shown">
+        <div class="system-header"></div>
 
-      <div class="gain-xp">Gain <span></span> XP</div>
+        <div id="enemies"></div>
+      </div>
 
-      <div class="button">Visit Hangar</div>
+      <div id="arsenal-modal" class="modal scrollbar">
+        <h1>Your Arsenal</h1>
 
-    </div>
+        <div class="items"></div>
 
-    <div id="selection-modal" class="modal scrollbar">
+        <div class="button done">DONE</div>
+      </div>
 
-      <h1>Select Card(s)</h1>
+      <div id="combos-modal" class="modal scrollbar">
+        <h1>combos</h1>
 
-      <div class="items"></div>
+        <div class="items"></div>
 
-      <div class="buttons">
+        <div class="button done">DONE</div>
+      </div>
+
+      <div id="stats-modal" class="modal scrollbar">
+        <h1>Your Stats</h1>
+
+        <div class="stats"></div>
 
         <div class="button done">DONE</div>
 
-        <div class="button cancel">CANCEL</div>
-
+        <div class="button reset">RESET</div>
       </div>
 
-    </div>
-
-    <div id="overworld" class="modal scrollbar shown">
-
-      <div class="system-header"></div>
-
-      <div id="enemies"></div>
-
-    </div>
-
-    <div id="arsenal-modal" class="modal scrollbar">
-
-      <h1>Your Arsenal</h1>
-
-      <div class="items"></div>
-
-      <div class="button done">DONE</div>
-
-    </div>
-
-    <div id="combos-modal" class="modal scrollbar">
-
-      <h1>combos</h1>
-
-      <div class="items"></div>
-
-      <div class="button done">DONE</div>
-
-    </div>
-
-    <div id="stats-modal" class="modal scrollbar">
-
-      <h1>Your Stats</h1>
-
-      <div class="stats"></div>
-
-      <div class="button done">DONE</div>
-
-      <div class="button reset">RESET</div>
-
-    </div>
-
-    <div id="shop">
-
-      <h1>Hangar</h1>
-
-      <div class="boosters"></div>
-
-      <div class="packs"></div>
-
-      <div class="injectors"></div>
-
-      <div class="system-heart"></div>
-
-      <div class="level-up"></div>
-
-      <div class="mercenary button" data-tippy-content="Purchase some XP (10-20)">Mercenary <span class="credits"></span> Credits</div>
-
-      <div class="restock button shown">Restock <span class="credits"></span> Credits</div>
-
-      <div class="button done">DONE</div>
-
-    </div>
-
-    <div id="enemy">
-
-      <div class="enemy-ship">
-
-      </div>
-
-    </div>
-
-    <div id="combat-info">
-
-      <div id="enemy-info">
-
-        <div class="enemy-name">
-          <div class="name"></div>
-          <div class="health"><span class="current"></span>&nbsp;/&nbsp;<span class="max"></span></div>
+      <div id="shop">
+        <div class="boosters-wrapper">
+          <div class="shop-label">Boosters</div>
+          <div class="boosters"></div>
         </div>
 
-        <div class="enemy-shield">Shield: <span></span></div>
+        <div class="packs-wrapper">
+          <div class="shop-label">Packs</div>
+          <div class="packs"></div>
+        </div>
 
-        <div class="enemy-vulnerability">Vulnerability: <span></span></div>
+        <div class="injectors-wrapper">
+          <div class="shop-label">Injectors</div>
+          <div class="injectors"></div>
+        </div>
 
+        <div class="system-heart-wrapper">
+          <div class="shop-label">System Heart</div>
+          <div class="system-heart-slot"></div>
+        </div>
+
+        <div class="level-up-wrapper">
+          <div class="shop-label">Level Up</div>
+          <div class="level-up"></div>
+        </div>
+
+        <div class="shop-buttons">
+          <div
+            class="mercenary button"
+            data-tippy-content="Purchase some XP (10-20)"
+          >
+            Mercenary <span class="credits"></span> Credits
+          </div>
+
+          <div class="restock button shown">
+            Restock <span class="credits"></span> Credits
+          </div>
+
+          <div class="button done">DONE</div>
+        </div>
       </div>
 
-      <div id="score">
+      <div id="enemy">
+        <div class="enemy-ship"></div>
+        <div id="enemy-info">
+          <div class="enemy-name">
+            <div class="name"></div>
+            <div class="health">
+              <span class="current"></span>&nbsp;/&nbsp;<span
+                class="max"
+              ></span>
+            </div>
+          </div>
 
-        <div class="combo-name">Combo Type: <span></span> <div class="combo-damage"></div> <div class="combo-played"></div></div>
-        <div class="number damage" id="damage">0</div>
-        <div class="times">&times;</div>
-        <div class="number power" id="power">1</div>
-        <div class="damage-amounts">
-          <div class="number pierce" id="pierce">1</div>
+          <div class="enemy-shield">Shield: <span></span></div>
+
+          <div class="enemy-vulnerability">Vulnerability: <span></span></div>
+        </div>
+      </div>
+
+      <div id="combat-info">
+        <div id="score">
+          <div class="combo-name">
+            Combo Type: <span></span>
+            <div class="combo-damage"></div>
+            <div class="combo-played"></div>
+          </div>
+          <div class="number damage" id="damage">0</div>
           <div class="times">&times;</div>
-          <div class="number spread" id="spread">1</div>
-          <div class="total-damage"><span></span></div>
+          <div class="number power" id="power">1</div>
+          <div class="damage-amounts">
+            <div class="number pierce" id="pierce">1</div>
+            <div class="times">&times;</div>
+            <div class="number spread" id="spread">1</div>
+            <div class="total-damage"><span></span></div>
+          </div>
+          <div class="crit"></div>
         </div>
-        <div class="crit"></div>
-
       </div>
 
-    </div>
+      <div id="game-info">
+        <div class="cumulative-damage">Battle Damage: <span></span></div>
 
-    <div id="game-info">
+        <div class="stats">
+          <div class="credits">
+            <div>Credits:</div>
+            <span></span>
+          </div>
 
-      <div class="cumulative-damage">Battle Damage: <span></span></div>
-
-      <div class="stats">
-        
-        <div class="credits"><div>Credits:</div><span></span></div>
-
-        <div class="xp">
+          <div class="xp">
             <div>XP:</div>
             <span></span>
             <div class="xp-bar-wrapper">
-                <div class="xp-bar"></div>
+              <div class="xp-bar"></div>
             </div>
-        </div>
-
-        <div class="level"><div>Level:</div><span></span></div>
-
-      </div>
-
-      <div class="stats">
-        
-        <div class="lives"><div>Lives:</div><span class="total"></span></div>
-
-        <div class="stow"><div>Stows:</div><span class="total"></span></div>
-
-        <div class="attack"><div>Attacks:</div><span class="total"></span></div>
-
-        <div class="foil"><div>Foil:</div><span class="total"></span></div>
-
-        <div class="holo"><div>Holo:</div><span class="total"></span></div>
-
-        <div class="sleeve"><div>Sleeve:</div><span class="total"></span></div>
-
-        <div class="gold-leaf"><div>Gold Leaf:</div><span class="total"></span></div>
-
-        <div class="texture"><div>Texture:</div><span class="total"></span></div>
-
-      </div>
-
-      <div class="view-buttons">
-
-        <div class="button" id="view-arsenal">Arsenal</div>
-
-        <div class="button" id="view-combos">Combos</div>
-
-        <div class="button" id="view-stats">Stats</div>
-        
-      </div>
-
-      <input id="custom-seed" type="text" placeholder="Custom Seed..." />
-
-    </div>
-
-    <div class="inventory">
-
-      <div id="injectors">
-        <div id="injector-slots"></div>
-      </div>
-
-      <div id="system-hearts">
-        
-      </div>
-
-    </div>
-
-    <div id="player">
-
-      <div id="rainbow-gauge">
-          
-      </div>
-
-      <div id="guns">
-
-      </div>
-
-      <div class="ship-wrapper">
-
-        <div id="stow-button" class="stow"><div>STOW</div><span class="remaining"></span><span>&nbsp;/&nbsp;</span><span class="total"></span></div>
-
-        <div class="ship">
-
-          <div id="boosters">
-            <div id="bridge-slots" class="slot-group" data-group="bridge"></div>
-            <div id="engineering-slots" class="slot-group" data-group="engineering"></div>
-            <div id="armory-slots" class="slot-group" data-group="armory"></div>
           </div>
 
+          <div class="level">
+            <div>Level:</div>
+            <span></span>
+          </div>
         </div>
 
-        <div id="attack-button" class="attack"><div>ATTACK</div><span class="remaining"></span><span>&nbsp;/&nbsp;</span><span class="total"></span></div>
+        <div class="stats">
+          <div class="lives">
+            <div>Lives:</div>
+            <span class="total"></span>
+          </div>
 
+          <div class="stow">
+            <div>Stows:</div>
+            <span class="total"></span>
+          </div>
+
+          <div class="attack">
+            <div>Attacks:</div>
+            <span class="total"></span>
+          </div>
+
+          <div class="foil">
+            <div>Foil:</div>
+            <span class="total"></span>
+          </div>
+
+          <div class="holo">
+            <div>Holo:</div>
+            <span class="total"></span>
+          </div>
+
+          <div class="sleeve">
+            <div>Sleeve:</div>
+            <span class="total"></span>
+          </div>
+
+          <div class="gold-leaf">
+            <div>Gold Leaf:</div>
+            <span class="total"></span>
+          </div>
+
+          <div class="texture">
+            <div>Texture:</div>
+            <span class="total"></span>
+          </div>
+        </div>
+
+        <div class="view-buttons">
+          <div class="button" id="view-arsenal">Arsenal</div>
+
+          <div class="button" id="view-combos">Combos</div>
+
+          <div class="button" id="view-stats">Stats</div>
+        </div>
+
+        <input id="custom-seed" type="text" placeholder="Custom Seed..." />
       </div>
 
-    </div>  
+      <div class="inventory">
+        <div id="injectors">
+          <div id="injector-slots"></div>
+        </div>
 
-    <div id="cards"></div>
+        <div id="system-hearts"></div>
+      </div>
 
-  </div>
+      <div id="player">
+        <div id="rainbow-gauge"></div>
 
-</body>
+        <div id="guns"></div>
+
+        <div class="ship-wrapper">
+          <div id="stow-button" class="stow">
+            <div>STOW</div>
+            <span class="remaining"></span><span>&nbsp;/&nbsp;</span
+            ><span class="total"></span>
+          </div>
+
+          <div class="ship">
+            <div id="boosters">
+              <div
+                id="bridge-slots"
+                class="slot-group"
+                data-group="bridge"
+              ></div>
+              <div
+                id="engineering-slots"
+                class="slot-group"
+                data-group="engineering"
+              ></div>
+              <div
+                id="armory-slots"
+                class="slot-group"
+                data-group="armory"
+              ></div>
+            </div>
+          </div>
+
+          <div id="attack-button" class="attack">
+            <div>ATTACK</div>
+            <span class="remaining"></span><span>&nbsp;/&nbsp;</span
+            ><span class="total"></span>
+          </div>
+        </div>
+      </div>
+
+      <div id="cards"></div>
+    </div>
+  </body>
 </html>

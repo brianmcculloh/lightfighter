@@ -94,14 +94,14 @@ export const ALL_BOOSTERS = [
     // bridge
     {id: 'chromatic_scoring', type: 'bridge', rarity: 'common', weight: 100, comboType: 'chromatic', damage: 40, description: '+100 damage for every scoring card in a Chromatic combo.'},
     {id: 'armament_scoring', type: 'bridge', rarity: 'common', weight: 100, comboType: 'armament', damage: 40, description: '+100 damage for every scoring card in an Armament combo.'},
-    {id: 'bi_Chromatic_scoring', type: 'engineering', rarity: 'common', weight: 100, comboType: 'biChromatic', power: 1.5, multiplicative: true, description: 'x1.5 power for every scoring card in a Bi Chromatic combo.'},
-    {id: 'bi_Armament_scoring', type: 'bridge', rarity: 'common', weight: 100, comboType: 'biArmament', power: 1.5, multiplicative: true, description: 'x1.5 power for every scoring card in a Bi Armament combo.'},
-    {id: 'tri_Chromatic_scoring', type: 'bridge', rarity: 'common', weight: 100, comboType: 'triChromatic', power: 1.5, multiplicative: true, description: 'x1.5 power for every scoring card in a Tri Chromatic combo.'},
-    {id: 'tri_Armament_scoring', type: 'bridge', rarity: 'common', weight: 100, comboType: 'triArmament', power: 1.5, multiplicative: true, description: 'x1.5 power for every scoring card in a Tri Armament combo.'},
-    {id: 'charged_Chromatic_scoring', type: 'bridge', rarity: 'common', weight: 100, comboType: 'chargedChromatic', power: 1.5, multiplicative: true, description: 'x1.5 power for every scoring card in a Charged Chromatic combo.'},
-    {id: 'charged_Armament_scoring', type: 'bridge', rarity: 'common', weight: 100, comboType: 'chargedArmament', power: 1.5, multiplicative: true, description: 'x1.5 power for every scoring card in a Charged Armament combo.'},
-    {id: 'quad_Chromatic_scoring', type: 'bridge', rarity: 'common', weight: 100, comboType: 'quadChromatic', power: 1.5, multiplicative: true, description: 'x1.5 power for every scoring card in a Quad Chromatic combo.'},
-    {id: 'quad_Armament_scoring', type: 'bridge', rarity: 'common', weight: 100, comboType: 'quadArmament', power: 1.5, multiplicative: true, description: 'x1.5 power for every scoring card in a Quad Armament combo.'},
+    {id: 'bi_Chromatic_scoring', type: 'engineering', rarity: 'common', weight: 100, comboType: 'biChromatic', power: 1.4, multiplicative: true, description: 'x1.4 power for every scoring card in a Bi Chromatic combo.'},
+    {id: 'bi_Armament_scoring', type: 'bridge', rarity: 'common', weight: 100, comboType: 'biArmament', power: 1.4, multiplicative: true, description: 'x1.4 power for every scoring card in a Bi Armament combo.'},
+    {id: 'tri_Chromatic_scoring', type: 'bridge', rarity: 'common', weight: 100, comboType: 'triChromatic', power: 1.4, multiplicative: true, description: 'x1.4 power for every scoring card in a Tri Chromatic combo.'},
+    {id: 'tri_Armament_scoring', type: 'bridge', rarity: 'common', weight: 100, comboType: 'triArmament', power: 1.4, multiplicative: true, description: 'x1.4 power for every scoring card in a Tri Armament combo.'},
+    {id: 'charged_Chromatic_scoring', type: 'bridge', rarity: 'common', weight: 100, comboType: 'chargedChromatic', power: 1.4, multiplicative: true, description: 'x1.4 power for every scoring card in a Charged Chromatic combo.'},
+    {id: 'charged_Armament_scoring', type: 'bridge', rarity: 'common', weight: 100, comboType: 'chargedArmament', power: 1.4, multiplicative: true, description: 'x1.4 power for every scoring card in a Charged Armament combo.'},
+    {id: 'quad_Chromatic_scoring', type: 'bridge', rarity: 'common', weight: 100, comboType: 'quadChromatic', power: 1.4, multiplicative: true, description: 'x1.4 power for every scoring card in a Quad Chromatic combo.'},
+    {id: 'quad_Armament_scoring', type: 'bridge', rarity: 'common', weight: 100, comboType: 'quadArmament', power: 1.4, multiplicative: true, description: 'x1.4 power for every scoring card in a Quad Armament combo.'},
     {
         id: 'white_retrigger', 
         type: 'bridge', 
@@ -127,8 +127,8 @@ export const ALL_BOOSTERS = [
         cardLevel: 9,
         compareLevel: 'greater',
         multiplicative: true,
-        power: 1.5,
-        description: 'x1.5 power for every played card level 10 or higher.'
+        power: 1.4,
+        description: 'x1.4 power for every played card level 10 or higher.'
     },
     {
         id: 'card_level_20', 
@@ -137,13 +137,13 @@ export const ALL_BOOSTERS = [
         cardLevel: 19,
         compareLevel: 'greater',
         multiplicative: true,
-        power: 1.5,
-        description: 'x1.5 power for every played card level 20 or higher.'
+        power: 1.4,
+        description: 'x1.4 power for every played card level 20 or higher.'
     },
     {
         id: 'retrigger_multiplicative', 
         type: 'armory', 
-        rarity: 'common', weight: 60, 
+        rarity: 'common', weight: 50, 
         context: 'any',
         retriggerCondition: {'multiplicative': true},
         retriggerTimes: 1,
@@ -158,34 +158,34 @@ export const ALL_BOOSTERS = [
         retriggerTimes: 1,
         selfImprove: 'retriggerTimes',
         improveEvent: 'attack', 
-        improveChance: .25,
+        improveChance: .1,
         improveAmount: 1,
-        description: 'Retrigger all boosters that target special cards <span class="description-retriggerTimes">1</span> time. 25% chance to improve the number of times this booster retriggers by 1 when you attack.'
+        description: 'Retrigger all boosters that target special cards <span class="description-retriggerTimes">1</span> time. 10% chance to improve the number of times this booster retriggers by 1 when you attack.'
     },
     
 
     // engineering
-    {id: 'red_scoring', type: 'engineering', rarity: 'common', weight: 95, cardColor: 'red', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every scoring Red card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'orange_scoring', type: 'engineering', rarity: 'common', weight: 95, cardColor: 'orange', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every scoring Orange card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'yellow_scoring', type: 'engineering', rarity: 'common', weight: 95, cardColor: 'yellow', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every scoring Yellow card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'green_scoring', type: 'engineering', rarity: 'common', weight: 95, cardColor: 'green', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every scoring Green card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'blue_scoring', type: 'engineering', rarity: 'common', weight: 95, cardColor: 'blue', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every scoring Blue card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'indigo_scoring', type: 'engineering', rarity: 'common', weight: 95, cardColor: 'indigo', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every scoring Indigo card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'violet_scoring', type: 'engineering', rarity: 'common', weight: 95, cardColor: 'violet', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every scoring Violet card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'white_scoring', type: 'engineering', rarity: 'common', weight: 95, cardColor: 'white', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every scoring White card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'ultraviolet_scoring', type: 'engineering', rarity: 'common', weight: 95, cardColor: 'ultraviolet', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every scoring Ultraviolet card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'black_scoring', type: 'engineering', rarity: 'common', weight: 95, cardColor: 'black', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every scoring Black card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'red_scoring', type: 'engineering', rarity: 'common', weight: 95, cardColor: 'red', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every scoring Red card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'orange_scoring', type: 'engineering', rarity: 'common', weight: 95, cardColor: 'orange', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every scoring Orange card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'yellow_scoring', type: 'engineering', rarity: 'common', weight: 95, cardColor: 'yellow', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every scoring Yellow card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'green_scoring', type: 'engineering', rarity: 'common', weight: 95, cardColor: 'green', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every scoring Green card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'blue_scoring', type: 'engineering', rarity: 'common', weight: 95, cardColor: 'blue', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every scoring Blue card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'indigo_scoring', type: 'engineering', rarity: 'common', weight: 95, cardColor: 'indigo', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every scoring Indigo card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'violet_scoring', type: 'engineering', rarity: 'common', weight: 95, cardColor: 'violet', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every scoring Violet card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'white_scoring', type: 'engineering', rarity: 'common', weight: 95, cardColor: 'white', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every scoring White card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'ultraviolet_scoring', type: 'engineering', rarity: 'common', weight: 95, cardColor: 'ultraviolet', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every scoring Ultraviolet card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'black_scoring', type: 'engineering', rarity: 'common', weight: 95, cardColor: 'black', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every scoring Black card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
     
-    {id: 'red_drawn', type: 'engineering', rarity: 'common', weight: 90, cardColor: 'red', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every drawn Red card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'orange_drawn', type: 'engineering', rarity: 'common', weight: 90, cardColor: 'orange', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every drawn Orange card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'yellow_drawn', type: 'engineering', rarity: 'common', weight: 90, cardColor: 'yellow', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every drawn Yellow card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'green_drawn', type: 'engineering', rarity: 'common', weight: 90, cardColor: 'green', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every drawn Green card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'blue_drawn', type: 'engineering', rarity: 'common', weight: 90, cardColor: 'blue', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every drawn Blue card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'indigo_drawn', type: 'engineering', rarity: 'common', weight: 90, cardColor: 'indigo', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every drawn Indigo card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'violet_drawn', type: 'engineering', rarity: 'common', weight: 90, cardColor: 'violet', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every drawn Violet card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'white_drawn', type: 'engineering', rarity: 'common', weight: 90, cardColor: 'white', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every drawn White card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'ultraviolet_drawn', type: 'engineering', rarity: 'common', weight: 90, cardColor: 'ultraviolet', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every drawn Ultraviolet card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'black_drawn', type: 'engineering', rarity: 'common', weight: 90, cardColor: 'black', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every drawn Black card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'red_drawn', type: 'engineering', rarity: 'common', weight: 90, cardColor: 'red', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every drawn Red card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'orange_drawn', type: 'engineering', rarity: 'common', weight: 90, cardColor: 'orange', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every drawn Orange card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'yellow_drawn', type: 'engineering', rarity: 'common', weight: 90, cardColor: 'yellow', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every drawn Yellow card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'green_drawn', type: 'engineering', rarity: 'common', weight: 90, cardColor: 'green', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every drawn Green card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'blue_drawn', type: 'engineering', rarity: 'common', weight: 90, cardColor: 'blue', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every drawn Blue card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'indigo_drawn', type: 'engineering', rarity: 'common', weight: 90, cardColor: 'indigo', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every drawn Indigo card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'violet_drawn', type: 'engineering', rarity: 'common', weight: 90, cardColor: 'violet', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every drawn Violet card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'white_drawn', type: 'engineering', rarity: 'common', weight: 90, cardColor: 'white', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every drawn White card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'ultraviolet_drawn', type: 'engineering', rarity: 'common', weight: 90, cardColor: 'ultraviolet', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every drawn Ultraviolet card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'black_drawn', type: 'engineering', rarity: 'common', weight: 90, cardColor: 'black', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every drawn Black card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
     
     {
         id: 'upgrade_random_combo', 
@@ -208,11 +208,11 @@ export const ALL_BOOSTERS = [
     {id: 'gravity_wave_scoring', type: 'armory', rarity: 'common', weight: 100, cardType: 'gravity_wave', to: 'scoringCards', power: 25, description: '+25 power for every scoring Gravity Wave.'},
     {id: 'nano_swarm_scoring', type: 'armory', rarity: 'common', weight: 100, cardType: 'nano_swarm', to: 'scoringCards', power: 25, description: '+25 power for every scoring Nano Swarm.'},
 
-    {id: 'plasma_cell_drawn', type: 'armory', rarity: 'common', weight: 90, cardType: 'plasma_cell', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every drawn Plasma Cell card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'dark_matter_drawn', type: 'armory', rarity: 'common', weight: 90, cardType: 'dark_matter', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every drawn Dark Matter card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'quantum_shard_drawn', type: 'armory', rarity: 'common', weight: 90, cardType: 'quantum_shard', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every drawn Quantum Shard card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'gravity_wave_drawn', type: 'armory', rarity: 'common', weight: 90, cardType: 'gravity_wave', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every drawn Gravity Wave card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
-    {id: 'nano_swarm_drawn', type: 'armory', rarity: 'common', weight: 90, cardType: 'nano_swarm', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .5, description: '+<span class="description-power">2</span> power for every drawn Nano Swarm card. 50% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'plasma_cell_drawn', type: 'armory', rarity: 'common', weight: 90, cardType: 'plasma_cell', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every drawn Plasma Cell card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'dark_matter_drawn', type: 'armory', rarity: 'common', weight: 90, cardType: 'dark_matter', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every drawn Dark Matter card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'quantum_shard_drawn', type: 'armory', rarity: 'common', weight: 90, cardType: 'quantum_shard', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every drawn Quantum Shard card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'gravity_wave_drawn', type: 'armory', rarity: 'common', weight: 90, cardType: 'gravity_wave', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every drawn Gravity Wave card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
+    {id: 'nano_swarm_drawn', type: 'armory', rarity: 'common', weight: 90, cardType: 'nano_swarm', to: 'handCards', power: 2, context: 'drawn', selfImprove: 'power', improveAmount: 10, improveChance: .25, description: '+<span class="description-power">2</span> power for every drawn Nano Swarm card. 25% chance to increase power by <span class="description-power-improve">10</span> each time.'},
 
     {
         id: 'plasma_cell_retrigger', 
@@ -267,8 +267,8 @@ export const ALL_BOOSTERS = [
         compareLevel: 'greater',
         multiplicative: true,
         to: 'scoringCards',
-        power: 1.5,
-        description: 'x1.5 power for every card played as part of a combo level 10 or higher.'
+        power: 1.4,
+        description: 'x1.4 power for every card played as part of a combo level 10 or higher.'
     },
     {
         id: 'combo_level_20', 
@@ -278,26 +278,26 @@ export const ALL_BOOSTERS = [
         compareLevel: 'greater',
         multiplicative: true,
         to: 'scoringCards',
-        power: 1.5,
-        description: 'x1.5 power for every card played as part of a combo level 20 or higher.'
+        power: 1.4,
+        description: 'x1.4 power for every card played as part of a combo level 20 or higher.'
     },
     
 
     // UNCOMMON
     // bridge 
-    {id: 'full_Chromatic_scoring', type: 'bridge', rarity: 'uncommon', weight: 70, comboType: 'fullChromatic', power: 2, selfImprove: 'power', improveAmount: .05, improveChance: .1, multiplicative: true, description: 'x<span class="description-power">2</span> power for every scoring card in a Full Chromatic combo. 10% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
-    {id: 'full_Armament_scoring', type: 'bridge', rarity: 'uncommon', weight: 70, comboType: 'fullArmament', power: 2, selfImprove: 'power', improveAmount: .05, improveChance: .1, multiplicative: true, description: 'x<span class="description-power">2</span> power for every scoring card in a Full Armament combo. 10% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
-    {id: 'full_Spectrum_scoring', type: 'bridge', rarity: 'uncommon', weight: 70, comboType: 'fullSpectrum', power: 2, selfImprove: 'power', improveAmount: .05, improveChance: .1, multiplicative: true, description: 'x<span class="description-power">2</span> power for every scoring card in a Full Spectrum combo. 10% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
-    {id: 'full_Chromatic_Armament_scoring', type: 'bridge', rarity: 'uncommon', weight: 70, comboType: 'fullChromaticArmament', power: 2, selfImprove: 'power', improveAmount: .05, improveChance: .1, multiplicative: true, description: 'x<span class="description-power">2</span> power for every scoring card in a Full Chromatic Armament combo. 10% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
-    {id: 'full_Spectrum_Armament_scoring', type: 'bridge', rarity: 'uncommon', weight: 70, comboType: 'fullSpectrumArmament', power: 2, selfImprove: 'power', improveAmount: .05, improveChance: .1, multiplicative: true, description: 'x<span class="description-power">2</span> power for every scoring card in a Full Spectrum Armament combo. 10% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
+    {id: 'full_Chromatic_scoring', type: 'bridge', rarity: 'uncommon', weight: 70, comboType: 'fullChromatic', power: 1.4, selfImprove: 'power', improveAmount: .05, improveChance: .25, multiplicative: true, description: 'x<span class="description-power">1.4</span> power for every scoring card in a Full Chromatic combo. 25% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
+    {id: 'full_Armament_scoring', type: 'bridge', rarity: 'uncommon', weight: 70, comboType: 'fullArmament', power: 1.4, selfImprove: 'power', improveAmount: .05, improveChance: .25, multiplicative: true, description: 'x<span class="description-power">1.4</span> power for every scoring card in a Full Armament combo. 25% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
+    {id: 'full_Spectrum_scoring', type: 'bridge', rarity: 'uncommon', weight: 70, comboType: 'fullSpectrum', power: 1.4, selfImprove: 'power', improveAmount: .05, improveChance: .25, multiplicative: true, description: 'x<span class="description-power">1.4</span> power for every scoring card in a Full Spectrum combo. 25% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
+    {id: 'full_Chromatic_Armament_scoring', type: 'bridge', rarity: 'uncommon', weight: 70, comboType: 'fullChromaticArmament', power: 1.4, selfImprove: 'power', improveAmount: .05, improveChance: .25, multiplicative: true, description: 'x<span class="description-power">1.4</span> power for every scoring card in a Full Chromatic Armament combo. 25% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
+    {id: 'full_Spectrum_Armament_scoring', type: 'bridge', rarity: 'uncommon', weight: 70, comboType: 'fullSpectrumArmament', power: 1.4, selfImprove: 'power', improveAmount: .05, improveChance: .25, multiplicative: true, description: 'x<span class="description-power">1.4</span> power for every scoring card in a Full Spectrum Armament combo. 25% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
     {
         id: 'special_cards', 
         type: 'bridge', 
         rarity: 'uncommon', weight: 75, 
         cardEffect: ['foil', 'holo', 'sleeve', 'gold_leaf', 'texture'], 
-        power: 1.5, 
+        power: 1.4, 
         multiplicative: true,
-        description: 'x1.5 power for every played special card.'
+        description: 'x1.4 power for every played special card.'
     },
     {
         id: 'compare_level', 
@@ -305,9 +305,9 @@ export const ALL_BOOSTERS = [
         rarity: 'uncommon', weight: 60, 
         cardLevel: 1, 
         compareLevel: 'greater', 
-        power: 1.5, 
+        power: 1.4, 
         multiplicative: true,
-        description: 'x1.5 power for every played card higher than level 1.'
+        description: 'x1.4 power for every played card higher than level 1.'
     },
     {
         id: 'pierce_stow', 
@@ -325,8 +325,8 @@ export const ALL_BOOSTERS = [
         cardLevel: 29,
         compareLevel: 'greater',
         multiplicative: true,
-        power: 1.5,
-        description: 'x1.5 power for every played card level 30 or higher.'
+        power: 1.4,
+        description: 'x1.4 power for every played card level 30 or higher.'
     },
     {
         id: 'card_level_40', 
@@ -335,8 +335,8 @@ export const ALL_BOOSTERS = [
         cardLevel: 39,
         compareLevel: 'greater',
         multiplicative: true,
-        power: 1.5,
-        description: 'x1.5 power for every played card level 40 or higher.'
+        power: 1.4,
+        description: 'x1.4 power for every played card level 40 or higher.'
     },
     {
         id: 'retrigger_cardStatus', 
@@ -347,9 +347,9 @@ export const ALL_BOOSTERS = [
         retriggerTimes: 1,
         selfImprove: 'retriggerTimes',
         improveEvent: 'attack', 
-        improveChance: .25,
+        improveChance: .1,
         improveAmount: 1,
-        description: 'Retrigger all boosters that target epic, legendary, and mythical cards <span class="description-retriggerTimes">1</span> time. 25% chance to improve the number of times this booster retriggers by 1 when you attack.'
+        description: 'Retrigger all boosters that target epic, legendary, and mythical cards <span class="description-retriggerTimes">1</span> time. 10% chance to improve the number of times this booster retriggers by 1 when you attack.'
     },
     {
         id: 'retrigger_comboType', 
@@ -360,9 +360,9 @@ export const ALL_BOOSTERS = [
         retriggerTimes: 1,
         selfImprove: 'retriggerTimes',
         improveEvent: 'attack', 
-        improveChance: .25,
+        improveChance: .1,
         improveAmount: 1,
-        description: 'Retrigger all boosters that target combos <span class="description-retriggerTimes">1</span> time. 25% chance to improve the number of times this booster retriggers by 1 when you attack.'
+        description: 'Retrigger all boosters that target combos <span class="description-retriggerTimes">1</span> time. 10% chance to improve the number of times this booster retriggers by 1 when you attack.'
     },
     {
         id: 'retrigger_drawn', 
@@ -382,33 +382,13 @@ export const ALL_BOOSTERS = [
         retriggerTimes: 1,
         description: 'Retrigger all boosters that target stowed cards <span class="description-retriggerTimes">1</span> time.'
     },
-    {
-        id: 'multiply_power', 
-        type: 'bridge', 
-        rarity: 'uncommon', weight: 40, 
-        cardLevel: 0,
-        compareLevel: 'greater',
-        multiplicative: true,
-        power: 50,
-        description: 'x<span class="description-power">50</span> power.'
-    },
-    {
-        id: 'multiply_pierce', 
-        type: 'bridge', 
-        rarity: 'uncommon', weight: 40, 
-        cardLevel: 0,
-        compareLevel: 'greater',
-        multiplicative: true,
-        pierce: 10,
-        description: 'x<span class="description-pierce">10</span> pierce.'
-    },
 
 
     // engineering
-    {id: 'warm_improve', type: 'engineering', rarity: 'uncommon', weight: 70, colorTemperature: 'warm', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: .05, improveChance: .1, multiplicative: true, description: 'x<span class="description-power">2</span> power for every scoring Warm card. 10% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
-    {id: 'cool_improve', type: 'engineering', rarity: 'uncommon', weight: 70, colorTemperature: 'cool', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: .05, improveChance: .1, multiplicative: true, description: 'x<span class="description-power">2</span> power for every scoring Cool card. 10% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
-    {id: 'ultraviolet_improve', type: 'engineering', rarity: 'uncommon', weight: 70, cardColor: 'ultraviolet', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: .05, improveChance: .1, multiplicative: true, description: 'x<span class="description-power">2</span> power for every scoring Ultraviolet card. 10% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
-    {id: 'black_improve', type: 'engineering', rarity: 'uncommon', weight: 70, cardColor: 'black', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: .05, improveChance: .1, multiplicative: true, description: 'x<span class="description-power">2</span> power for every scoring Black card. 10% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
+    {id: 'warm_improve', type: 'engineering', rarity: 'uncommon', weight: 70, colorTemperature: 'warm', to: 'scoringCards', power: 1.4, selfImprove: 'power', improveAmount: .05, improveChance: .25, multiplicative: true, description: 'x<span class="description-power">1.4</span> power for every scoring Warm card. 25% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
+    {id: 'cool_improve', type: 'engineering', rarity: 'uncommon', weight: 70, colorTemperature: 'cool', to: 'scoringCards', power: 1.4, selfImprove: 'power', improveAmount: .05, improveChance: .25, multiplicative: true, description: 'x<span class="description-power">1.4</span> power for every scoring Cool card. 25% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
+    {id: 'ultraviolet_improve', type: 'engineering', rarity: 'uncommon', weight: 70, cardColor: 'ultraviolet', to: 'scoringCards', power: 1.4, selfImprove: 'power', improveAmount: .05, improveChance: .25, multiplicative: true, description: 'x<span class="description-power">1.4</span> power for every scoring Ultraviolet card. 25% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
+    {id: 'black_improve', type: 'engineering', rarity: 'uncommon', weight: 70, cardColor: 'black', to: 'scoringCards', power: 1.4, selfImprove: 'power', improveAmount: .05, improveChance: .25, multiplicative: true, description: 'x<span class="description-power">1.4</span> power for every scoring Black card. 25% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
     {
         id: 'upgrade_high_combo', 
         type: 'engineering', 
@@ -422,18 +402,18 @@ export const ALL_BOOSTERS = [
         type: 'engineering', 
         rarity: 'uncommon', weight: 60, 
         cardColor: ['orange'],
-        cardChance: .25,
+        cardChance: .2,
         credits: 10, 
-        description: '25% chance for +10 credits whenever an orange card is played.'
+        description: '20% chance for +10 credits whenever an orange card is played.'
     },
     {
         id: 'yellow_xp', 
         type: 'engineering', 
         rarity: 'uncommon', weight: 60, 
         cardColor: ['yellow'],
-        cardChance: .25,
+        cardChance: .2,
         xp: 40, 
-        description: '25% chance for +40 xp whenever a yellow card is played.'
+        description: '20% chance for +40 xp whenever a yellow card is played.'
     },
     {
         id: 'upgrade_random_for_green', 
@@ -450,8 +430,8 @@ export const ALL_BOOSTERS = [
         rarity: 'uncommon', weight: 50, 
         cardColor: ['green'],
         boosterAction: 'upgrade_green_cards',
-        procChance: .25,
-        description: 'For every green card played, 25% chance for +1 level to every green card played.'
+        procChance: .2,
+        description: 'For every green card played, 20% chance for +1 level to every green card played.'
     },
     {
         id: 'blue_hand', 
@@ -459,9 +439,9 @@ export const ALL_BOOSTERS = [
         rarity: 'uncommon', weight: 60,
         cardColor: ['blue'], 
         to: 'handCards', 
-        power: 2, 
+        power: 1.4, 
         multiplicative: true,
-        description: 'x2 power for every blue card in your hand.'
+        description: 'x1.4 power for every blue card in your hand.'
     },
     {
         id: 'red_drawn_pierce', 
@@ -512,9 +492,9 @@ export const ALL_BOOSTERS = [
         cardColor: ['blue'], 
         to: 'handCards', 
         context: 'drawn',
-        power: 2, 
+        power: 1.4, 
         multiplicative: true,
-        description: 'x2 power for every blue card drawn.'
+        description: 'x1.4 power for every blue card drawn.'
     },
     {
         id: 'indigo_drawn_upgrade_high_combo', 
@@ -540,11 +520,11 @@ export const ALL_BOOSTERS = [
     
 
     //armory
-    {id: 'plasma_cell_improve', type: 'armory', rarity: 'uncommon', weight: 70, cardType: 'plasma_cell', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: .05, improveChance: .10, multiplicative: true, description: 'x<span class="description-power">2</span> power for every scoring Plasma Cell. 10% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
-    {id: 'dark_matter_improve', type: 'armory', rarity: 'uncommon', weight: 70, cardType: 'dark_matter', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: .05, improveChance: .10, multiplicative: true, description: 'x<span class="description-power">2</span> power for every scoring Dark Matter. 10% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
-    {id: 'quantum_shard_improve', type: 'armory', rarity: 'uncommon', weight: 70, cardType: 'quantum_shard', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: .05, improveChance: .10, multiplicative: true, description: 'x<span class="description-power">2</span> power for every scoring Quantum Shard. 10% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
-    {id: 'gravity_wave_improve', type: 'armory', rarity: 'uncommon', weight: 70, cardType: 'gravity_wave', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: .05, improveChance: .10, multiplicative: true, description: 'x<span class="description-power">2</span> power for every scoring Gravity Wave. 10% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
-    {id: 'nano_swarm_improve', type: 'armory', rarity: 'uncommon', weight: 70, cardType: 'nano_swarm', to: 'scoringCards', power: 2, selfImprove: 'power', improveAmount: .05, improveChance: .10, multiplicative: true, description: 'x<span class="description-power">2</span> power for every scoring Nano Swarm. 10% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
+    {id: 'plasma_cell_improve', type: 'armory', rarity: 'uncommon', weight: 70, cardType: 'plasma_cell', to: 'scoringCards', power: 1.4, selfImprove: 'power', improveAmount: .05, improveChance: .25, multiplicative: true, description: 'x<span class="description-power">1.4</span> power for every scoring Plasma Cell. 25% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
+    {id: 'dark_matter_improve', type: 'armory', rarity: 'uncommon', weight: 70, cardType: 'dark_matter', to: 'scoringCards', power: 1.4, selfImprove: 'power', improveAmount: .05, improveChance: .25, multiplicative: true, description: 'x<span class="description-power">1.4</span> power for every scoring Dark Matter. 25% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
+    {id: 'quantum_shard_improve', type: 'armory', rarity: 'uncommon', weight: 70, cardType: 'quantum_shard', to: 'scoringCards', power: 1.4, selfImprove: 'power', improveAmount: .05, improveChance: .25, multiplicative: true, description: 'x<span class="description-power">1.4</span> power for every scoring Quantum Shard. 25% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
+    {id: 'gravity_wave_improve', type: 'armory', rarity: 'uncommon', weight: 70, cardType: 'gravity_wave', to: 'scoringCards', power: 1.4, selfImprove: 'power', improveAmount: .05, improveChance: .25, multiplicative: true, description: 'x<span class="description-power">1.4</span> power for every scoring Gravity Wave. 25% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
+    {id: 'nano_swarm_improve', type: 'armory', rarity: 'uncommon', weight: 70, cardType: 'nano_swarm', to: 'scoringCards', power: 1.4, selfImprove: 'power', improveAmount: .05, improveChance: .25, multiplicative: true, description: 'x<span class="description-power">1.4</span> power for every scoring Nano Swarm. 25% chance to increase power by <span class="description-power-improve">0.05</span> each time.'},
     {
         id: 'combo_level_30', 
         type: 'armory', 
@@ -553,8 +533,8 @@ export const ALL_BOOSTERS = [
         compareLevel: 'greater',
         multiplicative: true,
         to: 'scoringCards',
-        power: 1.5,
-        description: 'x1.5 power for every card played as part of a combo level 30 or higher.'
+        power: 1.4,
+        description: 'x1.4 power for every card played as part of a combo level 30 or higher.'
     },
     {
         id: 'combo_level_40', 
@@ -564,8 +544,8 @@ export const ALL_BOOSTERS = [
         compareLevel: 'greater',
         multiplicative: true,
         to: 'scoringCards',
-        power: 1.5,
-        description: 'x1.5 power for every card played as part of a combo level 40 or higher.'
+        power: 1.4,
+        description: 'x1.4 power for every card played as part of a combo level 40 or higher.'
     },
     {
         id: 'epic_played', 
@@ -630,8 +610,8 @@ export const ALL_BOOSTERS = [
         rarity: 'uncommon', weight: 50, 
         cardType: ['plasma_cell'],
         boosterAction: 'random_played_foil',
-        cardChance: .2,
-        description: '20% chance to convert a random hand card to a foil card whenver a plasma cell is played.'
+        cardChance: .1,
+        description: '10% chance to convert a random hand card to a foil card whenver a plasma cell is played.'
     },
     {
         id: 'dark_matter_played_holo', 
@@ -639,8 +619,8 @@ export const ALL_BOOSTERS = [
         rarity: 'uncommon', weight: 50, 
         cardType: ['dark_matter'],  
         boosterAction: 'random_played_holo',
-        cardChance: .2,
-        description: '20% chance to convert a random hand card to a holo card whenver a dark matter is played.'
+        cardChance: .1,
+        description: '10% chance to convert a random hand card to a holo card whenver a dark matter is played.'
     },
     {
         id: 'quantum_shard_played_sleeve', 
@@ -648,8 +628,8 @@ export const ALL_BOOSTERS = [
         rarity: 'uncommon', weight: 50, 
         cardType: ['quantum_shard'],
         boosterAction: 'random_played_sleeve',
-        cardChance: .2,
-        description: '20% chance to convert a random hand card to a sleeve card whenver a quantum shard is played.'
+        cardChance: .1,
+        description: '10% chance to convert a random hand card to a sleeve card whenver a quantum shard is played.'
     },
     {
         id: 'gravity_wave_played_gold_leaf', 
@@ -657,8 +637,8 @@ export const ALL_BOOSTERS = [
         rarity: 'uncommon', weight: 50, 
         cardType: ['gravity_wave'],
         boosterAction: 'random_played_gold_leaf',
-        cardChance: .2,
-        description: '20% chance to convert a random hand card to a gold leaf card whenver a gravity wave is played.'
+        cardChance: .1,
+        description: '10% chance to convert a random hand card to a gold leaf card whenver a gravity wave is played.'
     },
     {
         id: 'nano_swarm_played_texture', 
@@ -666,8 +646,8 @@ export const ALL_BOOSTERS = [
         rarity: 'uncommon', weight: 50, 
         cardType: ['nano_swarm'],
         boosterAction: 'random_played_texture',
-        cardChance: .2,
-        description: '20% chance to convert a random hand card to a texture card whenver a nano swarm is played.'
+        cardChance: .1,
+        description: '10% chance to convert a random hand card to a texture card whenver a nano swarm is played.'
     },
 
 
@@ -679,9 +659,9 @@ export const ALL_BOOSTERS = [
         rarity: 'rare', weight: 40,
         cardLevel: 0,
         compareLevel: 'greater',
-        pierce: 1.5,
-        cardChance: .5,
-        description: '50% chance for x1.5 pierce for every played card.'
+        pierce: 1.4,
+        cardChance: .25,
+        description: '25% chance for x1.4 pierce for every played card.'
     },
     {
         id: 'white_retrigger_improve', 
@@ -693,8 +673,8 @@ export const ALL_BOOSTERS = [
         selfImprove: 'retriggerTimes',
         improveEvent: 'attack', 
         improveAmount: 1,
-        improveChance: .25,
-        description: 'Retrigger all boosters that target white cards <span class="description-retriggerTimes">1</span> times. 25% chance to increase the number of times this booster retriggers by 1 when you attack.'
+        improveChance: .1,
+        description: 'Retrigger all boosters that target white cards <span class="description-retriggerTimes">1</span> times. 10% chance to increase the number of times this booster retriggers by 1 when you attack.'
     },
     {
         id: 'card_level_50', 
@@ -703,10 +683,10 @@ export const ALL_BOOSTERS = [
         cardLevel: 49,
         compareLevel: 'greater',
         multiplicative: true,
-        power: 1.5,
+        power: 1.4,
         selfImprove: 'power',
         improveAmount: .1,
-        description: 'x<span class="description-power">1.5</span> power for every played card level 50 or higher. Increase power by .1 each time this booster procs.'
+        description: 'x<span class="description-power">1.4</span> power for every played card level 50 or higher. Increase power by .1 each time this booster procs.'
     },
     {
         id: 'retrigger_selfImprove', 
@@ -717,14 +697,14 @@ export const ALL_BOOSTERS = [
         retriggerTimes: 1,
         selfImprove: 'retriggerTimes',
         improveEvent: 'attack', 
-        improveChance: .25,
+        improveChance: .1,
         improveAmount: 1,
-        description: 'Retrigger all boosters that have a chance to improve <span class="description-retriggerTimes">1</span> time(s). 25% chance to improve the number of times this booster retriggers by 1 when you attack.'
+        description: 'Retrigger all boosters that have a chance to improve <span class="description-retriggerTimes">1</span> time(s). 10% chance to improve the number of times this booster retriggers by 1 when you attack.'
     },
     {
         id: 'retrigger_commons', 
         type: 'armory', 
-        rarity: 'rare', weight: 20,
+        rarity: 'rare', weight: 10,
         context: 'any',
         retriggerCondition: {'rarity': 'common'},
         retriggerTimes: 1,
@@ -733,7 +713,7 @@ export const ALL_BOOSTERS = [
     {
         id: 'retrigger_uncommons', 
         type: 'armory', 
-        rarity: 'rare', weight: 20,
+        rarity: 'rare', weight: 8,
         context: 'any',
         retriggerCondition: {'rarity': 'uncommon'},
         retriggerTimes: 1,
@@ -742,21 +722,11 @@ export const ALL_BOOSTERS = [
     {
         id: 'retrigger_rares', 
         type: 'armory', 
-        rarity: 'rare', weight: 20,
+        rarity: 'rare', weight: 5,
         context: 'any',
         retriggerCondition: {'rarity': 'rare'},
         retriggerTimes: 1,
         description: 'Retrigger all rare boosters <span class="description-retriggerTimes">1</span> time.'
-    },
-    {
-        id: 'multiply_spread', 
-        type: 'bridge', 
-        rarity: 'rare', weight: 20, 
-        cardLevel: 0,
-        compareLevel: 'greater',
-        multiplicative: true,
-        spread: 1.5,
-        description: 'x<span class="description-spread">1.5</span> spread.'
     },
 
 
@@ -766,7 +736,7 @@ export const ALL_BOOSTERS = [
         type: 'engineering', 
         rarity: 'rare', weight: 40,
         cardColor: ['violet'],
-        cardChance: .20,
+        cardChance: .2,
         boosterAction: 'random_hand_special_card',
         description: '20% chance to convert a random card in hand to a random special card whenever a violet card is played.'
     },
@@ -788,20 +758,20 @@ export const ALL_BOOSTERS = [
         cardChance: .1,
         spread: .1,
         selfImprove: 'spread', 
-        improveChance: .5,
+        improveChance: .25,
         improveAmount: .1, 
-        description: '10% chance for +<span class="description-spread">0.1</span> spread for every black card played. 50% to improve spread modifier by <span class="description-spread-improve">0.1</span> when this booster procs.'
+        description: '10% chance for +<span class="description-spread">0.1</span> spread for every black card played. 25% chance to improve spread modifier by <span class="description-spread-improve">0.1</span> when this booster procs.'
     },
     {
         id: 'black_spread_improve', 
         type: 'engineering', 
         rarity: 'rare', weight: 40,
         cardColor: ['black'],
-        cardChance: .2,
+        cardChance: .15,
         spread: .02,
         selfImprove: 'spread', 
         improveAmount: .02, 
-        description: '20% chance for +<span class="description-spread">0.02</span> spread for every black card played. Improve spread modifier by <span class="description-spread-improve">0.02</span> when this booster procs.'
+        description: '15% chance for +<span class="description-spread">0.02</span> spread for every black card played. Improve spread modifier by <span class="description-spread-improve">0.02</span> when this booster procs.'
     },
     {
         id: 'scoring_red', 
@@ -819,11 +789,12 @@ export const ALL_BOOSTERS = [
         type: 'engineering', 
         rarity: 'rare', weight: 30,
         cardColor: ['orange'],
-        cardChance: .1,
+        cardChance: .15,
         credits: 10, 
         selfImprove: 'cardChance',
         improveAmount: .01,
-        description: '<span class="description-cardChance">10</span>% chance for +<span class="description-credits">10</span> credits whenever an orange card is played. Increase chance by <span class="description-cardChance-improve">1</span>% when this booster procs.'
+        improveChance: .4,
+        description: '<span class="description-cardChance">15</span>% chance for +<span class="description-credits">10</span> credits whenever an orange card is played. 40% chance to increase chance by <span class="description-cardChance-improve">1</span>% when this booster procs.'
     },
     {
         id: 'yellow_xp_improve', 
@@ -843,9 +814,9 @@ export const ALL_BOOSTERS = [
         cardColor: ['violet'],
         context: 'drawn',
         to: 'handCards',
-        cardChance: .2,
+        cardChance: .15,
         boosterAction: 'random_hand_special_card',
-        description: '20% chance to convert a random card in hand to a random special card whenever a violet card is drawn.'
+        description: '15% chance to convert a random card in hand to a random special card whenever a violet card is drawn.'
     },
     {
         id: 'black_drawn_spread', 
@@ -857,9 +828,9 @@ export const ALL_BOOSTERS = [
         cardChance: .1,
         spread: .1,
         selfImprove: 'spread', 
-        improveChance: .5,
+        improveChance: .25,
         improveAmount: .1, 
-        description: '10% chance for +<span class="description-spread">0.1</span> spread for every black card drawn. 50% to improve spread modifier by <span class="description-spread-improve">0.1</span> when this booster procs.'
+        description: '10% chance for +<span class="description-spread">0.1</span> spread for every black card drawn. 25% to improve spread modifier by <span class="description-spread-improve">0.1</span> when this booster procs.'
     },
 
 
@@ -870,7 +841,7 @@ export const ALL_BOOSTERS = [
         type: 'armory', 
         rarity: 'rare', weight: 40,
         cardColor: ['ultraviolet'],
-        cardChance: .20,
+        cardChance: .2,
         boosterAction: 'random_special_meta_increase',
         description: '20% chance to increase the effects of a random special type of cards whenever an ultraviolet card is played.'
     },
@@ -882,19 +853,19 @@ export const ALL_BOOSTERS = [
         cardChance: .1,
         selfImprove: 'cardChance',
         improveAmount: .05,
-        improveChance: .5,
+        improveChance: .25,
         boosterAction: 'random_special_meta_increase',
-        description: '<span class="description-cardChance">10</span>% chance to increase the effects of a random special type of cards whenever an ultraviolet card is played. 50% chance to improve that chance by <span class="description-cardChance-improve">1</span>% when this booster procs.'
+        description: '<span class="description-cardChance">10</span>% chance to increase the effects of a random special type of cards whenever an ultraviolet card is played. 25% chance to improve that chance by <span class="description-cardChance-improve">1</span>% when this booster procs.'
     },
     {
         id: 'blue_level_power', 
         type: 'armory', 
         rarity: 'rare', weight: 40,
         cardColor: ['blue'],
-        cardChance: .5,
+        cardChance: .4,
         multiplicative: true,
         power: 'total_blue_levels',
-        description: "For every blue card played, 50% chance to multiply power by the sum of every blue card's level"
+        description: "For every blue card played, 40% chance to multiply power by the sum of every blue card's level"
     },
     {
         id: 'random_special_meta_increase_drawn', 
@@ -915,10 +886,10 @@ export const ALL_BOOSTERS = [
         compareLevel: 'greater',
         multiplicative: true,
         to: 'scoringCards',
-        power: 1.5,
+        power: 1.4,
         selfImprove: 'power',
         improveAmount: .1,
-        description: 'x<span class="description-power">1.5</span> power for every card played as part of a combo level 50 or higher. Increase power by .1 each time this booster procs.'
+        description: 'x<span class="description-power">1.4</span> power for every card played as part of a combo level 50 or higher. Increase power by .1 each time this booster procs.'
     },
     {
         id: 'epic_played_multi', 
@@ -939,11 +910,11 @@ export const ALL_BOOSTERS = [
         cardStatus: 'epic', 
         multiplicative: true,
         to: 'scoringCards', 
-        power: 1.5,
+        power: 1.4,
         selfImprove: 'power',
-        improveAmount: .25,
+        improveAmount: .1,
         improveChance: .5,
-        description: 'x<span class="description-power">1.5</span> power for every scoring epic card. 50% chance to increase power by .25 each time this booster procs.'
+        description: 'x<span class="description-power">1.4</span> power for every scoring epic card. 50% chance to increase power by .1 each time this booster procs.'
     },
     {
         id: 'legendary_played_multi', 
@@ -964,11 +935,11 @@ export const ALL_BOOSTERS = [
         cardStatus: 'legendary', 
         multiplicative: true,
         to: 'scoringCards', 
-        power: 1.5,
+        power: 1.4,
         selfImprove: 'power',
-        improveAmount: .25,
+        improveAmount: .1,
         improveChance: .5,
-        description: 'x<span class="description-power">1.5</span> power for every scoring legendary card. 50% chance to increase power by .25 each time this booster procs.'
+        description: 'x<span class="description-power">1.4</span> power for every scoring legendary card. 50% chance to increase power by .1 each time this booster procs.'
     },
     {
         id: 'mythical_played_multi', 
@@ -988,12 +959,12 @@ export const ALL_BOOSTERS = [
         rarity: 'rare', weight: 30, 
         cardStatus: 'mythical', 
         multiplicative: true,
-        power: 1.5,
+        power: 1.4,
         to: 'scoringCards', 
         selfImprove: 'power',
-        improveAmount: .25,
+        improveAmount: .1,
         improveChance: .5,
-        description: 'x<span class="description-power">1.5</span> power for every scoring mythical card. 50% chance to increase power by .25 each time this booster procs.'
+        description: 'x<span class="description-power">1.4</span> power for every scoring mythical card. 50% chance to increase power by .1 each time this booster procs.'
     },
     
 
@@ -1007,23 +978,23 @@ export const ALL_BOOSTERS = [
         power: 2,
         selfImprove: 'power', 
         improveAmount: 'double', 
-        improveChance: .5,
-        description: '+<span class="description-power">2</span> power. 50% chance to double power each time this booster procs.'
+        improveChance: .25,
+        description: '+<span class="description-power">2</span> power. 25% chance to double power each time this booster procs.'
     },
     {
         id: 'retrigger_power', 
         type: 'bridge', 
         rarity: 'legendary', weight: 5, 
-        power: 1.5,
+        power: 1.4,
         conditional: false,
         multiplicative: true,
         retriggerTimes: 1,
         selfImprove: 'retriggerTimes',
         retriggerCondition: {'power': 'exists'},
-        improveChance: .25,
+        improveChance: .1,
         improveAmount: 1,
         improveEvent: 'attack', 
-        description: 'x<span class="description-power">1.5</span> power. Retriggers all other boosters that increase power <span class="description-retriggerTimes">1</span> time. 25% chance to improve the number of times this booster retriggers by 1 when you attack.'
+        description: 'x<span class="description-power">1.4</span> power. Retriggers all other boosters that increase power <span class="description-retriggerTimes">1</span> time. 10% chance to improve the number of times this booster retriggers by 1 when you attack.'
     },
 
 
@@ -1105,9 +1076,9 @@ export const ALL_BOOSTERS = [
         rarity: 'common', weight: 100, 
         conditional: false,
         context: 'stowed',
-        procChance: .25,
+        procChance: .2,
         boosterAction: 'upgrade_stowed_combo',
-        description: '25% chance to +1 level to stowed combo.'
+        description: '20% chance to +1 level to stowed combo.'
     },
     {
         id: 'pierce_stowed_one', 
@@ -1172,12 +1143,12 @@ export const ALL_BOOSTERS = [
         type: 'engineering', 
         rarity: 'common', weight: 90,
         conditional: false, 
-        power: 1.5, 
+        power: 1.4, 
         multiplicative: true, 
         selfImprove: 'power', 
         improveEvent: 'crit', 
         improveAmount: .1, 
-        description: 'x<span class="description-power">1.5</span> power. Increase power by <span class="description-power-improve">0.1</span> each time you crit an enemy.'
+        description: 'x<span class="description-power">1.4</span> power. Increase power by <span class="description-power-improve">0.1</span> each time you crit an enemy.'
     },
     {
         id: 'highest_wavelength', 
@@ -1241,7 +1212,7 @@ export const ALL_BOOSTERS = [
     {
         id: 'combo_frequency', 
         type: 'bridge', 
-        rarity: 'uncommon', weight: 60,
+        rarity: 'uncommon', weight: 50,
         conditional: false,
         multiplicative: true,
         power: 'combo_frequency',
@@ -1308,6 +1279,24 @@ export const ALL_BOOSTERS = [
         boosterAction: 'convert_sacrifice',
         description: 'When a booster is sacrificed during combat, +spread equal to the total number of times that booster has fired throughout the run.'
     },
+    {
+        id: 'multiply_power', 
+        type: 'bridge', 
+        rarity: 'uncommon', weight: 40, 
+        multiplicative: true,
+        conditional: false, 
+        power: 50,
+        description: 'x<span class="description-power">50</span> power.'
+    },
+    {
+        id: 'multiply_pierce', 
+        type: 'bridge', 
+        rarity: 'uncommon', weight: 40, 
+        multiplicative: true,
+        conditional: false, 
+        pierce: 10,
+        description: 'x<span class="description-pierce">10</span> pierce.'
+    },
 
 
     // engineering
@@ -1316,7 +1305,7 @@ export const ALL_BOOSTERS = [
         type: 'engineering', 
         rarity: 'uncommon', weight: 60,
         conditional: false, 
-        power: 5, 
+        power: 2.5, 
         multiplicative: true, 
         procChance: .5,
         selfImprove: 'power', 
@@ -1324,7 +1313,7 @@ export const ALL_BOOSTERS = [
         improveCondition: 'one_card', 
         improveAmount: 2.5, 
         improveChance: .5,
-        description: '50% chance of x<span class="description-power">5</span> power. 50% chance to increase power by <span class="description-power-improve">2.5</span> each time you play only one card.'
+        description: '50% chance of x<span class="description-power">2.5</span> power. 50% chance to increase power by <span class="description-power-improve">2.5</span> each time you play only one card.'
     },
     {
         id: 'single_red', 
@@ -1350,20 +1339,20 @@ export const ALL_BOOSTERS = [
         type: 'engineering', 
         rarity: 'uncommon', weight: 50,
         conditional: false, 
-        procChance: .1,
+        procChance: .15,
         spread: 10,
         boosterAction: 'destroy_self',
-        description: '10% chance for +10 spread. When this booster procs, it self-destructs.'
+        description: '15% chance for +10 spread. When this booster procs, it self-destructs.'
     },
     {
         id: 'common_sacrifice', 
         type: 'engineering', 
         rarity: 'uncommon', weight: 50,
         conditional: false, 
-        procChance: .05,
+        procChance: .15,
         spread: 10,
         boosterAction: 'destroy_common',
-        description: '5% chance for +10 spread. When this booster procs, it sacrifices a random common booster.'
+        description: '15% chance for +10 spread. When this booster procs, it sacrifices a random common booster.'
     },
 
 
@@ -1373,13 +1362,13 @@ export const ALL_BOOSTERS = [
         type: 'armory', 
         rarity: 'uncommon', weight: 70,
         conditional: false, 
-        power: 2, 
+        power: 1.5, 
         multiplicative: true, 
         selfImprove: 'power', 
         improveEvent: 'win', 
         improveCondition: 'three_stows', 
         improveAmount: .5, 
-        description: 'x<span class="description-power">2</span> power. Increase power by <span class="description-power-improve">.5</span> each time you end combat with 3 stows left.'
+        description: 'x<span class="description-power">1.5</span> power. Increase power by <span class="description-power-improve">.5</span> each time you end combat with 3 stows left.'
     },
     {
         id: 'first_attack_spread', 
@@ -1417,7 +1406,7 @@ export const ALL_BOOSTERS = [
     {
         id: 'retrigger_engineering', 
         type: 'bridge', 
-        rarity: 'rare', weight: 6,
+        rarity: 'rare', weight: 4,
         retriggerCondition: {'type': 'engineering'},
         retriggerTimes: 1,
         context: 'any',
@@ -1426,7 +1415,7 @@ export const ALL_BOOSTERS = [
     {
         id: 'retrigger_bridge', 
         type: 'bridge', 
-        rarity: 'rare', weight: 6,
+        rarity: 'rare', weight: 4,
         retriggerCondition: {'type': 'bridge'},
         retriggerTimes: 1,
         context: 'any',
@@ -1435,7 +1424,7 @@ export const ALL_BOOSTERS = [
     {
         id: 'retrigger_armory', 
         type: 'bridge', 
-        rarity: 'rare', weight: 6,
+        rarity: 'rare', weight: 4,
         retriggerCondition: {'type': 'armory'},
         retriggerTimes: 1,
         context: 'any',
@@ -1444,7 +1433,7 @@ export const ALL_BOOSTERS = [
     {
         id: 'retrigger_all', 
         type: 'bridge', 
-        rarity: 'rare', weight: 3,
+        rarity: 'rare', weight: 2,
         retriggerCondition: {'type': ['bridge', 'engineering', 'armory']},
         retriggerTimes: 1,
         context: 'any',
@@ -1453,7 +1442,7 @@ export const ALL_BOOSTERS = [
     {
         id: 'double_retrigger', 
         type: 'bridge', 
-        rarity: 'rare', weight: 3,
+        rarity: 'rare', weight: 2,
         boosterAction: 'double_retriggers',
         retriggerCondition: {},
         context: 'any',
@@ -1468,33 +1457,45 @@ export const ALL_BOOSTERS = [
         boosterAction: 'stow_wavelengths',
         description: 'Increase wavelength of each stowed card.'
     },
+    {
+        id: 'multiply_spread', 
+        type: 'bridge', 
+        rarity: 'rare', weight: 20, 
+        conditional: false,
+        multiplicative: true,
+        spread: 1.1,
+        description: 'x<span class="description-spread">1.1</span> spread.'
+    },
+
+
+
 
     // engineering
     {
         id: 'upgrade_scoring_cards', 
         type: 'engineering', 
         rarity: 'rare', weight: 30,
-        procChance: .25,
+        procChance: .2,
         conditional: false,
         boosterAction: 'upgrade_scoring_cards',
-        description: '25% chance to upgrade all scoring cards.'
+        description: '20% chance to upgrade all scoring cards.'
     },
     {
         id: 'upgrade_played_combo', 
         type: 'engineering', 
         rarity: 'rare', weight: 30,
-        procChance: .25,
+        procChance: .1,
         conditional: false,
         improveAmount: .1,
         improveChance: .25,
         selfImprove: 'procChance',
         boosterAction: 'upgrade_played_combo',
-        description: '<span class="description-procChance">25</span>% chance of +1 level to played combo. 25% chance to increase chance this booster procs by <span class="description-procChance-improve">10</span>% when this booster procs.'
+        description: '<span class="description-procChance">10</span>% chance of +1 level to played combo. 25% chance to increase chance this booster procs by <span class="description-procChance-improve">10</span>% when this booster procs.'
     },
     {
         id: 'double_damage_values', 
         type: 'engineering', 
-        rarity: 'rare', weight: 7,
+        rarity: 'rare', weight: 5,
         boosterAction: 'double_damage_values',
         retriggerCondition: {},
         context: 'any',
@@ -1503,7 +1504,7 @@ export const ALL_BOOSTERS = [
     {
         id: 'double_additive', 
         type: 'engineering', 
-        rarity: 'rare', weight: 12,
+        rarity: 'rare', weight: 9,
         boosterAction: 'double_additive',
         retriggerCondition: {},
         context: 'any',
@@ -1512,7 +1513,7 @@ export const ALL_BOOSTERS = [
     {
         id: 'double_multiplicative', 
         type: 'engineering', 
-        rarity: 'rare', weight: 9,
+        rarity: 'rare', weight: 5,
         boosterAction: 'double_multiplicative',
         retriggerCondition: {},
         context: 'any',
@@ -1521,7 +1522,7 @@ export const ALL_BOOSTERS = [
     {
         id: 'double_right', 
         type: 'engineering', 
-        rarity: 'rare', weight: 25,
+        rarity: 'rare', weight: 5,
         conditional: false,
         multiplier: 2,
         description: 'Double the damage, power, pierce, spread, xp, credits, and multiplier effects of the booster to the right.'
@@ -1529,7 +1530,7 @@ export const ALL_BOOSTERS = [
     {
         id: 'triple_right', 
         type: 'engineering', 
-        rarity: 'rare', weight: 10,
+        rarity: 'rare', weight: 3,
         conditional: false,
         multiplier: 3,
         description: 'Triple the damage, power, pierce, spread, xp, credits, and multiplier effects of the booster to the right.'
@@ -1544,9 +1545,9 @@ export const ALL_BOOSTERS = [
         rarity: 'rare', weight: 20,
         conditional: false,
         context: 'stowed',
-        procChance: .25,
+        procChance: .2,
         boosterAction: 'stowed_special_card',
-        description: '25% chance to convert a random stowed card to a random special card.'
+        description: '20% chance to convert a random stowed card to a random special card.'
     },
     {
         id: 'stowed_upgrade_card', 
@@ -1561,11 +1562,11 @@ export const ALL_BOOSTERS = [
         id: 'upgrade_stowed_cards', 
         type: 'armory', 
         rarity: 'rare', weight: 40,
-        procChance: .25,
+        procChance: .2,
         conditional: false,
         context: 'stowed',
         boosterAction: 'upgrade_stowed_cards',
-        description: '25% chance to upgrade all stowed cards.'
+        description: '20% chance to upgrade all stowed cards.'
     },
 
 
@@ -1574,7 +1575,7 @@ export const ALL_BOOSTERS = [
     {
         id: 'double_power_values', 
         type: 'bridge', 
-        rarity: 'legendary', weight: 6,
+        rarity: 'legendary', weight: 5,
         boosterAction: 'double_power_values',
         retriggerCondition: {},
         context: 'any',
@@ -1586,7 +1587,7 @@ export const ALL_BOOSTERS = [
     {
         id: 'double_pierce_values', 
         type: 'engineering', 
-        rarity: 'legendary', weight: 5,
+        rarity: 'legendary', weight: 4,
         boosterAction: 'double_pierce_values',
         retriggerCondition: {},
         context: 'any',
@@ -1598,7 +1599,7 @@ export const ALL_BOOSTERS = [
     {
         id: 'double_spread_values', 
         type: 'armory', 
-        rarity: 'legendary', weight: 4,
+        rarity: 'legendary', weight: 3,
         boosterAction: 'double_spread_values',
         retriggerCondition: {},
         context: 'any',

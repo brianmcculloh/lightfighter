@@ -148,36 +148,37 @@ function formatLargeNumber(num) {
 }
 
 function weightedSelect(items, count) {
-    // Calculate the total weight of all items (defaulting to 50 if missing)
-    let totalWeight = items.reduce((sum, item) => {
-      return sum + (item.weight ?? 50);
-    }, 0);
-  
+    // Create a shallow copy of the items array
+    const itemsCopy = [...items];
+
+    // Calculate the total weight for the copy (defaulting to 50 if missing)
+    let totalWeight = itemsCopy.reduce((sum, item) => sum + (item.weight ?? 50), 0);
+
     const selected = [];
-  
-    // Keep selecting until we have `count` items or run out of items
-    while (selected.length < count && items.length > 0) {
-      // Pick a random point within the totalWeight
-      let random = randDecimal() * totalWeight;
-  
-      for (let i = 0; i < items.length; i++) {
-        const w = items[i].weight ?? 50;  // fallback weight
-        random -= w;
-  
-        if (random <= 0) {
-          // We found our chosen item
-          selected.push(items[i]);
-          // Adjust totalWeight so it stays accurate
-          totalWeight -= w;
-          // Remove from the array to avoid picking it again
-          items.splice(i, 1);
-          break;
+
+    // Keep selecting until we have `count` items or run out of items in the copy
+    while (selected.length < count && itemsCopy.length > 0) {
+        // Pick a random point within the total weight
+        let random = randDecimal() * totalWeight;
+
+        for (let i = 0; i < itemsCopy.length; i++) {
+            const w = itemsCopy[i].weight ?? 50;
+            random -= w;
+
+            if (random <= 0) {
+                // We found our chosen item; add it to selected
+                selected.push(itemsCopy[i]);
+                // Adjust totalWeight so it stays accurate
+                totalWeight -= w;
+                // Remove the selected item from the copy
+                itemsCopy.splice(i, 1);
+                break;
+            }
         }
-      }
     }
-  
+
     return selected;
-  }  
+}
 
 function togglePointerEvents(enable) {
     document.querySelector('body').style.pointerEvents = enable ? 'auto' : 'none';
@@ -249,8 +250,8 @@ function updateXPBar() {
     const xpBar = document.querySelector('.xp-bar');
     const xpSpan = document.querySelector('.xp span');
 
-    const baseThreshold = game.data.xpThreshold;  // Starting XP threshold
-    const scalingFactor = 50;  // Controls XP increase per level
+    const baseThreshold = game.data.xpThreshold; 
+    const scalingFactor = game.data.scalingFactor; 
 
     let totalXP = 0;
     let newLevel = 1;

@@ -222,13 +222,11 @@ input[type="text"] {
   height: calc(69vh - 5px);
   border: 1px solid white;
   background: black;
-  padding: 20px;
+  padding: 15px;
   display: none;
   flex-wrap: wrap;
-  gap: 50px;
-}
-#shop h1 {
-  flex-basis: 100%;
+  gap: 10px;
+  overflow: auto;
 }
 #shop.shown {
   display: flex;
@@ -236,9 +234,35 @@ input[type="text"] {
 #shop .boosters,
 #shop .packs,
 #shop .injectors,
-#shop h1 {
+#shop .system-heart-slot,
+#shop .level-up {
   display: flex;
-  gap: 10px;
+  gap: 3px;
+  border: 1px solid white;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 10px;
+  border-top: none;
+  height: 255px;
+}
+#shop .injectors {
+  flex-wrap: wrap;
+}
+#shop .system-heart-slot,
+#shop .level-up {
+  width: 170px;
+}
+#shop .card.system-heart,
+#shop .card.slot-level-up {
+  border-top: 1px solid white;
+  border-radius: 8px;
+  background: black;
+  height: 100%;
+}
+#shop .card.system-heart {
+  border-style: dashed;
+}
+#shop .card.slot-level-up {
+  border-width: 3px;
 }
 #shop .restock {
   display: none;
@@ -248,7 +272,36 @@ input[type="text"] {
 }
 #shop .level-up {
   display: flex;
-  gap: 10px;
+  gap: 3px;
+}
+#shop .boosters .card {
+  width: 96px;
+  height: 231px;
+  border-radius: 8px;
+  background: black;
+}
+#shop .shop-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+#shop .shop-label {
+  text-transform: uppercase;
+  width: 100%;
+  padding: 6px 10px 6px 10px;
+  border: 1px solid white;
+  background: rgba(255, 255, 255, 0.15);
+  font-weight: bold;
+  font-size: 15px;
+}
+#shop .packs-wrapper {
+  min-width: 325px;
+}
+#shop .boosters-wrapper {
+  min-width: 415px;
+}
+#shop .injectors-wrapper {
+  min-width: 225px;
 }
 
 #overworld {
@@ -364,20 +417,10 @@ input[type="text"] {
   height: 100%;
   transition: width 0.3s ease-in-out;
 }
-
-#combat-info {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  border: 1px solid white;
-  padding: 10px;
-  height: calc(40vh - 40px);
-  width: 18vw;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
 #enemy-info {
+  position: absolute;
+  top: 10px;
+  left: 10px;
   font-size: 20px;
   margin-bottom: 10px;
   display: flex;
@@ -394,6 +437,19 @@ input[type="text"] {
 .enemy-vulnerability {
   text-transform: capitalize;
   font-size: 16px;
+}
+
+#combat-info {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  border: 1px solid white;
+  padding: 10px;
+  height: calc(33vh - 40px);
+  width: 18vw;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
 }
 #score {
   display: flex;
@@ -457,11 +513,11 @@ input[type="text"] {
 
 #game-info {
   position: absolute;
-  top: 39vh;
+  top: 32vh;
   right: 20px;
   border: 1px solid white;
   padding: 10px;
-  height: calc(32vh - 40px);
+  height: calc(29vh - 40px);
   width: 18vw;
   display: flex;
   flex-wrap: wrap;
@@ -510,7 +566,7 @@ input[type="text"] {
   right: 20px;
   border: 1px solid white;
   padding: 5px;
-  height: 30vh;
+  height: 40vh;
   width: 18vw;
   display: flex;
   gap: 5px;
@@ -532,6 +588,7 @@ input[type="text"] {
   align-items: center;
   cursor: default;
   border-radius: 8px;
+  border-style: dashed;
 }
 #injectors {
   display: flex;
@@ -542,7 +599,7 @@ input[type="text"] {
 #injector-slots {
   display: flex;
   flex-wrap: wrap;
-  gap: 2px;
+  gap: 3px;
   height: 100%;
 }
 #injector-slots .injector-slot {
@@ -551,6 +608,7 @@ input[type="text"] {
   background: black;
   transition: all 0.2s;
   width: 100%;
+  max-height: 135px;
   position: relative;
 }
 #injector-slots .injector-slot .injector {
@@ -614,7 +672,7 @@ input[type="text"] {
   justify-content: space-between;
   display: flex;
   flex-wrap: nowrap;
-  gap: 10px;
+  gap: 2px;
   max-width: 100%;
   position: relative;
 }
@@ -627,7 +685,7 @@ input[type="text"] {
   gap: 4px;
   border: 1px solid #ccc;
   border-radius: 8px;
-  transition: transform 0.2s ease; /* Smooth scaling effect */
+  transition: transform 0.2s ease;
 }
 #boosters .booster-slot {
   border: 1px solid white;
@@ -648,7 +706,6 @@ input[type="text"] {
   top: 4px;
   left: 0;
 }
-
 #boosters .booster.card.active {
   background: blue;
 }
@@ -759,6 +816,28 @@ input[type="text"] {
 .booster-slot:hover {
   transform: translateY(-20px);
 }
+.card.booster {
+  font-size: 13px;
+  &[data-rarity="common"] {
+    border-color: lime;
+  }
+  &[data-rarity="uncommon"] {
+    border-color: aqua;
+  }
+  &[data-rarity="rare"] {
+    border-color: yellow;
+  }
+  &[data-rarity="legendary"] {
+    border-color: fuchsia;
+  }
+}
+.card.injector {
+  font-size: 13px;
+  border-radius: 8px;
+  width: 100px;
+  height: 115px;
+  background: black;
+}
 .card.upgraded {
   box-shadow: 5px 5px 5px 5px lime, -5px -5px 5px 5px lime,
     -5px 5px 5px 5px lime, 5px -5px 5px 5px lime;
@@ -769,6 +848,9 @@ input[type="text"] {
 }
 .card span {
   display: block;
+}
+.card span span {
+  display: inline-block;
 }
 .card span.name {
 }
@@ -833,12 +915,23 @@ input[type="text"] {
   background: var(--ultraviolet);
 }
 .pack {
-  height: 200px;
+  height: 231px;
   width: 150px;
   border: 3px solid white;
+  background: black;
   padding: 20px;
   cursor: pointer;
   transition: all 0.3s;
+  border-radius: 8px;
+  &[data-pack-size="standard"] {
+    border-color: lime;
+  }
+  &[data-pack-size="big"] {
+    border-color: aqua;
+  }
+  &[data-pack-size="giant"] {
+    border-color: yellow;
+  }
 }
 .pack span {
   display: block;

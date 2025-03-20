@@ -28,7 +28,8 @@ const config = {
 const data = {
   level: 1,
   xp: 0,
-  xpThreshold: 100,
+  xpThreshold: 100, // Base XP required for the first level-up
+  scalingFactor: 60, // Controls how steeply XP increases per level - increase this value for higher xp requirements, decrease for lower. a good range is 50 - 100
   spread: 1,
   credits: 0,
   mercenary: 5,
@@ -49,10 +50,10 @@ const data = {
   attacksRemaining: 3,
   stowsTotal: 3,
   stowsRemaining: 3,
-  foilPower: 2,
-  holoPower: 2,
-  sleevePower: 2,
-  goldCredits: 5,
+  foilPower: 1.4,
+  holoPower: 1.4,
+  sleevePower: 1.4,
+  goldCredits: 1,
   textureLevels: 1,
   removals: 1,
   converts: 6,

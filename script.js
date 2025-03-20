@@ -4,6 +4,7 @@
  * 
  * TODO: do something cool with critical hits
  * TODO: how are we currently leveraging compareEffects on boosters?
+ * TODO: when cards are upgraded via upgrade_stowed, the damage amounts above the cards disappear
  * 
  * 
  * ENEMY SPECIAL IDEAS:
@@ -20,10 +21,10 @@
  * 
  * 
  * CARD EFFECTS
- * --foil: multiplies (game.foilPower + card.level) to power when drawn (x2)
- * --holo: multiplies (game.holoPower + card.level) to power when played (x2)
- * --sleeve: multiplies (game.sleevePower + card.level) to power when held (x2)    
- * --gold leaf: adds (game.goldCredits + card.level) to credits when played as part of a combo (+5)
+ * --foil: multiplies (game.foilPower + card.level) to power when drawn (x1.4)
+ * --holo: multiplies (game.holoPower + card.level) to power when played (x1.4)
+ * --sleeve: multiplies (game.sleevePower + card.level) to power when held (x1.4)    
+ * --gold leaf: adds (game.goldCredits + card.level) to credits when played as part of a combo (+1)
  * --texture: level up (game.textureLevels) when played as part of a combo
  * 
  * Epic = holo/foil/texture/gold_leaf/sleeve
@@ -108,7 +109,7 @@ export async function init() {
 function manualLoad() {
     // Manual adding of boosters and system hearts for dev purposes
     let boosters = [
-        //'double_right',
+        //'upgrade_stowed_cards',
     ];
     let hearts = [
         //'attack',
@@ -640,10 +641,11 @@ function appendBoosterInfo(element, item) {
     });
 
     let rarity = item.rarity !== undefined ? item.rarity : 'common';
-    let itemRarity = document.createElement('span');
+    /*let itemRarity = document.createElement('span');
     itemRarity.classList.add('rarity');
     itemRarity.textContent = '(' + rarity + ')';
-    element.appendChild(itemRarity);
+    element.appendChild(itemRarity);*/
+    element.setAttribute('data-rarity', rarity);
 
     // ----------------------------
     // ADD "DISCOVERED" OR "UNDISCOVERED"
@@ -1712,7 +1714,7 @@ async function processBooster(booster, cardElement = false) {
         let previousAmount = parseInt(boosterElement.querySelector('.damage').getAttribute('data-amount').replace(/,/g, ''), 10);
         let newAmount = multiplicative ? Math.round((boosterDamage * previousAmount) * 100) / 100 : Math.round((boosterDamage + previousAmount) * 100) / 100;
         boosterElement.querySelector('.damage').textContent = prefix + newAmount;
-        boosterElement.querySelector('.damage').setAttribute('data-amount', newAmount);
+        boosterElement.querySelector('.damage').setAttribute('data-amount', formatLargeNumber(newAmount));
     }
     // Power is increasing
     if (powerIncrease > power) {
@@ -1723,7 +1725,7 @@ async function processBooster(booster, cardElement = false) {
         let previousAmount = parseInt(boosterElement.querySelector('.power').getAttribute('data-amount').replace(/,/g, ''), 10);
         let newAmount = multiplicative ? Math.round((boosterPower * previousAmount) * 100) / 100 : Math.round((boosterPower + previousAmount) * 100) / 100;
         boosterElement.querySelector('.power').textContent = prefix + newAmount;
-        boosterElement.querySelector('.power').setAttribute('data-amount', newAmount);
+        boosterElement.querySelector('.power').setAttribute('data-amount', formatLargeNumber(newAmount));
     }
     // Pierce is increasing
     if (pierceIncrease > pierce) {
@@ -1734,7 +1736,7 @@ async function processBooster(booster, cardElement = false) {
         let previousAmount = parseInt(boosterElement.querySelector('.pierce').getAttribute('data-amount').replace(/,/g, ''), 10);
         let newAmount = multiplicative ? Math.round((boosterPierce * previousAmount) * 100) / 100 : Math.round((boosterPierce + previousAmount) * 100) / 100;
         boosterElement.querySelector('.pierce').textContent = prefix + newAmount;
-        boosterElement.querySelector('.pierce').setAttribute('data-amount', newAmount);
+        boosterElement.querySelector('.pierce').setAttribute('data-amount', formatLargeNumber(newAmount));
     }
     // Spread is increasing
     if (spreadIncrease > spread) {
@@ -1742,11 +1744,11 @@ async function processBooster(booster, cardElement = false) {
         let amount = formatLargeNumber(spreadIncrease);
         document.querySelector('.number.spread').classList.add("active");
         document.querySelector('.number.spread').textContent = amount; // Update the spread displayed
-        game.data.spread = Math.round((game.data.spread + boosterSpread) * 100) / 100;
+        game.data.spread = spreadIncrease;
         let previousAmount = parseInt(boosterElement.querySelector('.spread').getAttribute('data-amount').replace(/,/g, ''), 10);
         let newAmount = multiplicative ? Math.round((boosterSpread * previousAmount) * 100) / 100 : Math.round((boosterSpread + previousAmount) * 100) / 100;
         boosterElement.querySelector('.spread').textContent = prefix + newAmount;
-        boosterElement.querySelector('.spread').setAttribute('data-amount', newAmount);
+        boosterElement.querySelector('.spread').setAttribute('data-amount', formatLargeNumber(newAmount));
     }
     // Credits are increasing
     if (creditsIncrease > credits) {
@@ -1754,11 +1756,11 @@ async function processBooster(booster, cardElement = false) {
         let amount = formatLargeNumber(creditsIncrease);
         document.querySelector('.stats .credits span').classList.add("active");
         document.querySelector('.stats .credits span').textContent = amount; // Update the credits displayed
-        game.data.credits = Math.round((game.data.credits + boosterCredits) * 100) / 100;
+        game.data.credits = creditsIncrease;
         let previousAmount = parseInt(boosterElement.querySelector('.credits').getAttribute('data-amount').replace(/,/g, ''), 10);
         let newAmount = multiplicative ? Math.round((boosterCredits * previousAmount) * 100) / 100 : Math.round((boosterCredits + previousAmount) * 100) / 100;
         boosterElement.querySelector('.credits').textContent = prefix + newAmount;
-        boosterElement.querySelector('.credits').setAttribute('data-amount', newAmount);
+        boosterElement.querySelector('.credits').setAttribute('data-amount', formatLargeNumber(newAmount));
     }
     // XP is increasing
     if (xpIncrease > xp) {
@@ -1766,11 +1768,11 @@ async function processBooster(booster, cardElement = false) {
         let amount = formatLargeNumber(xpIncrease);
         document.querySelector('.stats .xp span').classList.add("active");
         document.querySelector('.stats .xp span').textContent = amount; // Update the XP displayed
-        game.data.xp = Math.round((game.data.xp + boosterXP) * 100) / 100;
+        game.data.xp = xpIncrease;
         let previousAmount = parseInt(boosterElement.querySelector('.xp').getAttribute('data-amount').replace(/,/g, ''), 10);
         let newAmount = multiplicative ? Math.round((boosterXP * previousAmount) * 100) / 100 : Math.round((boosterXP + previousAmount) * 100) / 100;
         boosterElement.querySelector('.xp').textContent = prefix + newAmount;
-        boosterElement.querySelector('.xp').setAttribute('data-amount', newAmount);
+        boosterElement.querySelector('.xp').setAttribute('data-amount', formatLargeNumber(newAmount));
         checkLevel();
     }
 
@@ -2832,10 +2834,10 @@ function updatePreviews() {
     document.querySelector('.number.power').textContent = formatLargeNumber(totalPower);
     document.querySelector('.combo-name span').setAttribute('data-type', comboType);
     document.querySelector('.combo-name span').textContent = comboType ? capitalize(comboType.replace(/([A-Z])/g, ' $1').trim()) + comboTypeLevel : "None";
-    document.querySelector('.combo-name .combo-damage').textContent = bonusDamageDisplay;
+    document.querySelector('.combo-name .combo-damage').textContent = formatLargeNumber(bonusDamageDisplay);
     document.querySelector('.combo-name .combo-played').textContent = comboType ? "(Played " + comboTypePlayed + " times)" : '';
     document.querySelector('.total-damage').textContent = formatLargeNumber(Math.round(finalDamage));
-    document.querySelector('.gauge-power').textContent = spectrumBonusPowerDisplay;
+    document.querySelector('.gauge-power').textContent = formatLargeNumber(spectrumBonusPowerDisplay);
 
     // Update the temporary game state with the recalculated values
     game.temp.damage = totalDamage;
@@ -3090,8 +3092,8 @@ export async function checkLevel() {
     document.querySelector('.stats .level span').textContent = game.data.level;
     updateXPBar();
 
-    const baseThreshold = game.data.xpThreshold; // Base XP required for the first level-up
-    const scalingFactor = 50; // Controls how steeply XP increases per level - increase this value for higher xp requirements, decrease for lower
+    const baseThreshold = game.data.xpThreshold;
+    const scalingFactor = game.data.scalingFactor;
 
     // Calculate the new level based on XP with a quadratic increment
     let totalXP = 0;
@@ -3254,7 +3256,7 @@ function populateShopSystemHearts() {
     const systemHeart = game.systemHearts[randomIndex];
 
     // Append the system heart to the shop
-    const shopSystemHeart = document.querySelector('#shop .system-heart');
+    const shopSystemHeart = document.querySelector('#shop .system-heart-slot');
     shopSystemHeart.innerHTML = ''; // Clear previous system heart
 
     const cardElement = document.createElement('div');
