@@ -4,20 +4,7 @@
  * 
  * TODO: do something cool with critical hits
  * TODO: how are we currently leveraging compareEffects on boosters?
- * TODO: when cards are upgraded via upgrade_stowed, the damage amounts above the cards disappear
- * 
- * 
- * ENEMY SPECIAL IDEAS:
- * cannot attack until at least one combo is stowed
- * cannot use time shifts
- * one random booster is disabled at beginning of combat
- * cannot use injectors
- * minus 1 attack 
- * minus 1 stow
- * cannot play a certain color of cards
- * cannot play a certain type of cards
- * no spectrum bonus
- * 
+ * TODO: add enemy debuffs
  * 
  * 
  * CARD EFFECTS
@@ -26,6 +13,7 @@
  * --sleeve: multiplies (game.sleevePower + card.level) to power when held (x1.4)    
  * --gold leaf: adds (game.goldCredits + card.level) to credits when played as part of a combo (+1)
  * --texture: level up (game.textureLevels) when played as part of a combo
+ * 
  * 
  * Epic = holo/foil/texture/gold_leaf/sleeve
  * Legendary = Epic >= level 50
@@ -41,13 +29,11 @@
  * 6. Final score is calculated by multiplying Damage by Power
  * 
  * 
- * 
- * 
 *********************************************/
 
 import { saveGameState, loadGameState, saveStats, loadStats } from './db.js';
 
-import { setAnimationSpeed, setGameSeed, randDecimal, randString, randFromArray, randArrayIndex, numberToRoman, sortArsenal, prettyName, weightedSelect, togglePointerEvents, capitalize, formatLargeNumber, updateXPBar, fireAtEnemy, applyBoosterOverlap, applyCardOverlap, applyGunSlotOverlap, applySystemHeartOverlap, enableHoverZIndexBehavior, customDialog, message, flourish } from './utils.js';
+import { setAnimationSpeed, setGameSeed, randDecimal, randString, randFromArray, randArrayIndex, isDebuffActive, sortArsenal, prettyName, weightedSelect, togglePointerEvents, capitalize, formatLargeNumber, updateXPBar, fireAtEnemy, applyBoosterOverlap, applyCardOverlap, applyGunSlotOverlap, applySystemHeartOverlap, enableHoverZIndexBehavior, customDialog, message, flourish } from './utils.js';
 
 import { Decimal } from 'decimal.js';
 
@@ -56,7 +42,7 @@ import stats from './stats.js';
 
 import ALL_ENEMIES from './enemies.js';
 
-import { COLOR_DAMAGE_SCALE, WARM_COLORS, COOL_COLORS, RAINBOW_ORDER, CARD_TYPES, SPECIAL_ATTRIBUTES, ARCHETYPES, SPECIAL_CARDS, COMET_CARDS, PACK_TYPES, SYSTEMHEARTS, INJECTORS } from './cards.js';
+import { COLOR_DAMAGE_SCALE, WARM_COLORS, COOL_COLORS, RAINBOW_ORDER, CARD_TYPES, ARCHETYPES, SPECIAL_CARDS, COMET_CARDS, PACK_TYPES } from './cards.js';
 
 document.addEventListener('DOMContentLoaded', async() => {
 
@@ -109,7 +95,7 @@ export async function init() {
 function manualLoad() {
     // Manual adding of boosters and system hearts for dev purposes
     let boosters = [
-        //'upgrade_stowed_cards',
+        //'chromatic_scoring',
     ];
     let hearts = [
         //'attack',
@@ -338,6 +324,9 @@ export function refreshDom() {
     document.querySelector('.stats .gold-leaf .total').textContent = (game.data.goldCredits * game.data.specialMultiplier * game.data.creditsMultiplier);
     document.querySelector('.stats .texture .total').textContent = (game.data.textureLevels * game.data.specialMultiplier);
 
+    document.querySelector('.current-system span').textContent = game.data.system;
+    document.querySelector('.current-class span').textContent = game.data.class;
+
 	updateButtonAvailability();
 	updatePreviews();
     checkLevel();
@@ -446,14 +435,38 @@ export function showOverworld(increaseFloor = true) {
         // Display shield
         const shieldDiv = document.createElement('div');
         shieldDiv.className = 'enemy-shield';
-        shieldDiv.innerHTML = `Shield: <span>${enemy.shield === false ? 'None' : Array.isArray(enemy.shield) ? enemy.shield.join(', ') : enemy.shield}</span>`;
+        shieldDiv.innerHTML = `Shield: <span>${
+            (enemy.shield === undefined || enemy.shield === null || enemy.shield === false)
+            ? 'None'
+            : Array.isArray(enemy.shield)
+                ? prettyName(enemy.shield.join(', '))
+                : prettyName(enemy.shield)
+        }</span>`;
         wrapperDiv.appendChild(shieldDiv);
-    
+
         // Display vulnerability
         const vulnerabilityDiv = document.createElement('div');
         vulnerabilityDiv.className = 'enemy-vulnerability';
-        vulnerabilityDiv.innerHTML = `Vulnerability: <span>${enemy.vulnerability === false ? 'None' : Array.isArray(enemy.vulnerability) ? enemy.vulnerability.join(', ') : enemy.vulnerability}</span>`;
+        vulnerabilityDiv.innerHTML = `Vulnerability: <span>${
+            (enemy.vulnerability === undefined || enemy.vulnerability === null || enemy.vulnerability === false)
+            ? 'None'
+            : Array.isArray(enemy.vulnerability)
+                ? prettyName(enemy.vulnerability.join(', '))
+                : prettyName(enemy.vulnerability)
+        }</span>`;
         wrapperDiv.appendChild(vulnerabilityDiv);
+
+        // Display debuff
+        const debuffDiv = document.createElement('div');
+        debuffDiv.className = 'enemy-debuff';
+        debuffDiv.innerHTML = `Debuff: <span>${
+            (enemy.debuff === undefined || enemy.debuff === null || enemy.debuff === false)
+            ? 'None'
+            : Array.isArray(enemy.debuff)
+                ? prettyName(enemy.debuff.join(', '))
+                : prettyName(enemy.debuff)
+        }</span>`;
+        wrapperDiv.appendChild(debuffDiv);
     
         // Create and add the attack button
         const attackButtonDiv = document.createElement('div');
@@ -479,15 +492,49 @@ export function showOverworld(increaseFloor = true) {
 export async function startCombat(enemyid) {
     game.temp.currentContext = 'combat';
     document.getElementById('overworld').classList.remove('shown');
-	game.data.attacksRemaining = game.data.attacksTotal;
-	game.data.stowsRemaining = game.data.stowsTotal;
+    game.data.attacksRemaining = game.data.attacksTotal;
+    game.data.stowsRemaining = game.data.stowsTotal;
     game.temp.cumulativeDamage = 0;
     document.querySelector('.cumulative-damage span').textContent = 0;
     document.querySelector('.number.pierce').textContent = 1;
-	resetArsenal();
-	loadEnemy(enemyid);
+    resetArsenal();
+    loadEnemy(enemyid);
+
+    // Check for "minus" debuffs
+    if (isDebuffActive("minus_1_attack")) game.data.attacksRemaining -= 1;
+    if (isDebuffActive("minus_1_stow")) game.data.stowsRemaining -= 1;
+
+    // Check for booster disabling debuffs and mark a random booster in each group as disabled.
+    if (isDebuffActive("disable_bridge_booster")) {
+        let group = game.slots.bridgeCards;
+        if (group.length > 0) {
+            let randomIndex = Math.floor(Math.random() * group.length);
+            group[randomIndex].disabled = true;
+            let domEl = document.querySelector(`.booster-slot [data-guid="${group[randomIndex].guid}"]`);
+            if (domEl) domEl.classList.add("disabled");
+        }
+    }
+    if (isDebuffActive("disable_engineering_booster")) {
+        let group = game.slots.engineeringCards;
+        if (group.length > 0) {
+            let randomIndex = Math.floor(Math.random() * group.length);
+            group[randomIndex].disabled = true;
+            let domEl = document.querySelector(`.booster-slot [data-guid="${group[randomIndex].guid}"]`);
+            if (domEl) domEl.classList.add("disabled");
+        }
+    }
+    if (isDebuffActive("disable_armory_booster")) {
+        let group = game.slots.armoryCards;
+        if (group.length > 0) {
+            let randomIndex = Math.floor(Math.random() * group.length);
+            group[randomIndex].disabled = true;
+            let domEl = document.querySelector(`.booster-slot [data-guid="${group[randomIndex].guid}"]`);
+            if (domEl) domEl.classList.add("disabled");
+        }
+    }
+
     refreshDom();
-	await drawCards();
+    await drawCards();
 }
 
 function resetArsenal() {
@@ -854,23 +901,34 @@ function loadEnemy(enemyid) {
     enemyHealthMax.textContent = formatLargeNumber(enemy.max);
     enemyHealthMax.classList.add('fade-in');
 
-    // Shield and Vulnerability
+    // Shield, vulnerability, and debuffs
     const shieldElement = document.querySelector('#enemy-info .enemy-shield span');
     const vulnerabilityElement = document.querySelector('#enemy-info .enemy-vulnerability span');
+    const debuffElement = document.querySelector('#enemy-info .enemy-debuff span');
     
-    // Display "none" if shield is false, otherwise display the shield value(s)
-    if (enemy.shield === false) {
+    if (enemy.shield === undefined || enemy.shield === null || enemy.shield === false) {
         shieldElement.textContent = 'None';
     } else {
-        shieldElement.textContent = Array.isArray(enemy.shield) ? enemy.shield.join(', ') : enemy.shield;
+        shieldElement.textContent = Array.isArray(enemy.shield)
+            ? prettyName(enemy.shield.join(', '))
+            : prettyName(enemy.shield);
     }
-
-    // Display "none" if vulnerability is false, otherwise display the vulnerability value(s)
-    if (enemy.vulnerability === false) {
+    
+    if (enemy.vulnerability === undefined || enemy.vulnerability === null || enemy.vulnerability === false) {
         vulnerabilityElement.textContent = 'None';
     } else {
-        vulnerabilityElement.textContent = Array.isArray(enemy.vulnerability) ? enemy.vulnerability.join(', ') : enemy.vulnerability;
+        vulnerabilityElement.textContent = Array.isArray(enemy.vulnerability)
+            ? prettyName(enemy.vulnerability.join(', '))
+            : prettyName(enemy.vulnerability);
     }
+    
+    if (enemy.debuff === undefined || enemy.debuff === null || enemy.debuff === false) {
+        debuffElement.textContent = 'None';
+    } else {
+        debuffElement.textContent = Array.isArray(enemy.debuff)
+            ? prettyName(enemy.debuff.join(', '))
+            : prettyName(enemy.debuff);
+    }    
 }
 
 function updateButtonAvailability() {
@@ -2600,8 +2658,9 @@ function isChargedChromaticArmament(cards) {
 }
 
 function isVulnerable(card, enemy) {
-    const vulnerabilities = Array.isArray(enemy.vulnerability) ? enemy.vulnerability : [enemy.vulnerability];
-
+    const vulnerabilities = enemy.vulnerability 
+        ? (Array.isArray(enemy.vulnerability) ? enemy.vulnerability : [enemy.vulnerability])
+        : [];
     return vulnerabilities.some(vulnerability => {
         return card.color === vulnerability || 
                card.type === vulnerability ||
@@ -2611,8 +2670,9 @@ function isVulnerable(card, enemy) {
 }
 
 function isShielded(card, enemy) {
-    const shields = Array.isArray(enemy.shield) ? enemy.shield : [enemy.shield];
-
+    const shields = enemy.shield 
+        ? (Array.isArray(enemy.shield) ? enemy.shield : [enemy.shield])
+        : [];
     return shields.some(shield => {
         return card.color === shield || 
                card.type === shield ||
@@ -3040,20 +3100,21 @@ async function improveBoosters(event) {
 }
 
 
-function endCombat(result) {
+export async function endCombat(result) {
 
     game.temp.currentContext = 'overworld';
 
     document.querySelectorAll('.gauge-color').forEach(element => {
-		element.classList.remove('active');
-	});
+        element.classList.remove('active');
+    });
 
     clearAmounts();
 
     refreshDom();
 
-    togglePointerEvents(true); // Disable pointer events
-    if(result=='win') {
+    togglePointerEvents(true); // Enable pointer events
+
+    if (result == 'win') {
         // Check for any self improves
         improveBoosters('win');
         let credits = Math.round((((game.data.attacksRemaining + game.data.stowsRemaining) * 2) + 5) * game.data.creditsMultiplier);
@@ -3065,8 +3126,6 @@ function endCombat(result) {
 
         // Generate something like "2.3" or "3.10", etc.
         let combinedStr = game.data.system + '.' + game.data.class;
-
-        // Convert that string to a decimal number
         let currentSystemClass = parseFloat(combinedStr);  
 
         let highestSystemClass = stats.data.highest_system_class;
@@ -3080,11 +3139,23 @@ function endCombat(result) {
     } else {
         document.querySelector('#end-game').classList.add('shown');
         // reset the win streak if this wasn't considered a win (it's arbitrary at this point)
-        if(game.data.system < 10) {
+        if (game.data.system < 10) {
             stats.data.highest_win_streak = 0;
         }
     }
-	
+    
+    // Reset disabled status for all of the player's boosters.
+    const boosterGroups = [game.slots.bridgeCards, game.slots.engineeringCards, game.slots.armoryCards];
+    boosterGroups.forEach(group => {
+        group.forEach(booster => {
+            booster.disabled = false;
+            const boosterEl = document.querySelector(`[data-guid="${booster.guid}"]`);
+            if (boosterEl) {
+                boosterEl.classList.remove("disabled");
+            }
+        });
+    });
+    
 }
 
 export async function checkLevel() {

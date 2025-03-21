@@ -243,8 +243,27 @@ function fireAtEnemy(cardElement) {
     beam.addEventListener('transitionend', () => {
       beam.remove();
     });
-  }
-  
+}
+
+/**
+ * Checks if a specific debuff (provided as a string) is active on the current enemy.
+ * Handles the case where enemy.debuff is either a string or an array.
+ * @param {string} debuff - The debuff to check (e.g., "minus_1_attack").
+ * @returns {boolean} - True if the debuff is active, false otherwise.
+ */
+function isDebuffActive(debuff) {
+    const enemy = game.temp.currentEnemy;
+    if (!enemy) return false;
+    
+    const enemyDebuff = enemy.debuff;
+    if (Array.isArray(enemyDebuff)) {
+      return enemyDebuff.includes(debuff);
+    } else if (typeof enemyDebuff === 'string') {
+      return enemyDebuff === debuff;
+    }
+    
+    return false;
+}  
 
 function updateXPBar() {
     const xpBar = document.querySelector('.xp-bar');
@@ -638,6 +657,7 @@ export {
     togglePointerEvents,
     capitalize,
     fireAtEnemy,
+    isDebuffActive,
     updateXPBar,
     applyBoosterOverlap,
     applyCardOverlap,

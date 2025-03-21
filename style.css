@@ -292,7 +292,7 @@ input[type="text"] {
   border: 1px solid white;
   background: rgba(255, 255, 255, 0.15);
   font-weight: bold;
-  font-size: 15px;
+  font-size: 12px;
 }
 #shop .packs-wrapper {
   min-width: 325px;
@@ -434,9 +434,10 @@ input[type="text"] {
   display: flex;
 }
 .enemy-shield,
-.enemy-vulnerability {
+.enemy-vulnerability,
+.enemy-debuff {
   text-transform: capitalize;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 #combat-info {
@@ -523,6 +524,7 @@ input[type="text"] {
   flex-wrap: wrap;
   gap: 5px;
   flex-direction: column;
+  font-size: 14px;
 }
 #game-info > div {
   gap: 0 12px;
@@ -544,6 +546,9 @@ input[type="text"] {
 }
 .stats span.active {
   background: lime;
+}
+.stats .xp {
+  width: 100%;
 }
 .xp-bar-wrapper {
   width: 100%;
@@ -724,6 +729,17 @@ input[type="text"] {
 #boosters .booster.card.doubled {
   background: orange;
 }
+#boosters .booster.card.disabled {
+  border-color: rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+  color: rgba(255, 255, 255, 0.3);
+  .name {
+    color: rgba(255, 255, 255, 0.3);
+  }
+  .button.destroy {
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+}
 #boosters .booster-slot .booster {
   position: absolute;
   top: 2px;
@@ -808,16 +824,20 @@ input[type="text"] {
 }
 .card.active,
 .card:hover {
-  transform: translateY(-20px);
+  transform: translateY(-15px);
 }
 .booster-slot .card:hover {
   transform: none;
 }
 .booster-slot:hover {
-  transform: translateY(-20px);
+  transform: translateY(-15px);
 }
-.card.booster {
+.booster.card {
   font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  .name {
+    color: white;
+  }
   &[data-rarity="common"] {
     border-color: lime;
   }
@@ -831,12 +851,27 @@ input[type="text"] {
     border-color: fuchsia;
   }
 }
-.card.injector {
+.injector.card {
   font-size: 13px;
   border-radius: 8px;
+  color: rgba(255, 255, 255, 0.6);
   width: 100px;
   height: 115px;
   background: black;
+  .name {
+    color: white;
+  }
+  &.disabled {
+    border-color: rgba(255, 255, 255, 0.3);
+    pointer-events: none;
+    color: rgba(255, 255, 255, 0.3);
+    .name {
+      color: rgba(255, 255, 255, 0.3);
+    }
+    .button.destroy {
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+  }
 }
 .card.upgraded {
   box-shadow: 5px 5px 5px 5px lime, -5px -5px 5px 5px lime,
@@ -937,7 +972,7 @@ input[type="text"] {
   display: block;
 }
 .pack:hover {
-  transform: translateY(-20px);
+  transform: translateY(-15px);
 }
 
 .fade-in {
