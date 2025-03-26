@@ -1,9 +1,25 @@
 /*********************************************
  * 
- * PHASE I: GAME ENGINE PHASE
+ * PHASE I: GAME ENGINE
  * 
  * TODO: do something cool with critical hits
  * TODO: how are we currently leveraging compareEffects on boosters?
+ * 
+ * 
+ * 
+ * PHASE II: BALANCE & PLAYTESTING
+ * 
+ * TODO: overworld should show boosters
+ * TODO: splash and intro
+ * TODO: settings screen
+ * TODO: enhance overworld with messaging/lore
+ * 
+ * 
+ * 
+ * 
+ * PHASE III: GRAPHICS, SOUNDS, AND ASSETS
+ * 
+ * 
  * 
  * 
  * CARD EFFECTS
@@ -94,7 +110,7 @@ export async function init() {
 function manualLoad() {
     // Manual adding of boosters and system hearts for dev purposes
     let boosters = [
-        //'upgrade_scoring_10',
+        //'upgrade_played_10',
     ];
     let hearts = [
         //'attack',

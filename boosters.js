@@ -1501,7 +1501,7 @@ export const ALL_BOOSTERS = [
         description: 'x power for every scoring card equal to total number of empty booster slots + 1 if this is the only booster in its group.'
     },
     {
-        id: 'upgrade_scoring_5', 
+        id: 'upgrade_played_5', 
         type: 'armory', 
         rarity: 'uncommon', weight: 55,
         procChance: .1,
@@ -1513,7 +1513,7 @@ export const ALL_BOOSTERS = [
         description: '10% chance for +<span class="description-levels">5</span> levels to all played cards. Increase levels by <span class="description-levels-improve">1</span> each time this booster procs.'
     },
     {
-        id: 'upgrade_scoring_10', 
+        id: 'upgrade_played_10', 
         type: 'armory', 
         rarity: 'uncommon', weight: 55,
         procChance: .05,
@@ -1525,7 +1525,7 @@ export const ALL_BOOSTERS = [
         description: '5% chance for +<span class="description-levels">10</span> levels to all played cards. Increase levels by <span class="description-levels-improve">1</span> each time this booster procs.'
     },
     {
-        id: 'upgrade_scoring_20', 
+        id: 'upgrade_played_20', 
         type: 'armory', 
         rarity: 'uncommon', weight: 55,
         procChance: .025,
