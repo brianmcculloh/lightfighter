@@ -807,6 +807,9 @@ input[type="text"] {
 #cards {
   height: 200px;
 }
+#cards .card.disabled {
+  opacity: 0.3;
+}
 .card {
   position: relative;
   height: 200px;

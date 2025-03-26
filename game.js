@@ -132,6 +132,7 @@ const temp = {
   persistentPierce: 0,
   persistentSpread: 0,
   currentContext: 'overworld', // overworld, hangar, combat, etc.
+  combosStowed: 0,
 };
 
 const comboTypeLevels = {

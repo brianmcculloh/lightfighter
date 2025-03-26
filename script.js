@@ -4,7 +4,6 @@
  * 
  * TODO: do something cool with critical hits
  * TODO: how are we currently leveraging compareEffects on boosters?
- * TODO: add enemy debuffs
  * 
  * 
  * CARD EFFECTS
@@ -95,7 +94,7 @@ export async function init() {
 function manualLoad() {
     // Manual adding of boosters and system hearts for dev purposes
     let boosters = [
-        //'chromatic_scoring',
+        //'upgrade_scoring_10',
     ];
     let hearts = [
         //'attack',
@@ -497,14 +496,23 @@ export async function startCombat(enemyid) {
     game.temp.cumulativeDamage = 0;
     document.querySelector('.cumulative-damage span').textContent = 0;
     document.querySelector('.number.pierce').textContent = 1;
-    resetArsenal();
     loadEnemy(enemyid);
+    resetArsenal();
 
-    // Check for "minus" debuffs
-    if (isDebuffActive("minus_1_attack")) game.data.attacksRemaining -= 1;
-    if (isDebuffActive("minus_1_stow")) game.data.stowsRemaining -= 1;
+    await processDebuffs();
 
-    // Check for booster disabling debuffs and mark a random booster in each group as disabled.
+    refreshDom();
+    await drawCards();
+}
+
+async function processDebuffs() {
+
+    if (isDebuffActive("minus_1_attack")) {
+        game.data.attacksRemaining -= 1;
+    }
+    if (isDebuffActive("minus_1_stow")) {
+        game.data.stowsRemaining -= 1;
+    }
     if (isDebuffActive("disable_bridge_booster")) {
         let group = game.slots.bridgeCards;
         if (group.length > 0) {
@@ -532,9 +540,272 @@ export async function startCombat(enemyid) {
             if (domEl) domEl.classList.add("disabled");
         }
     }
-
-    refreshDom();
-    await drawCards();
+    if (isDebuffActive("disable_random_booster")) {
+        const allBoosters = [
+            ...game.slots.bridgeCards,
+            ...game.slots.engineeringCards,
+            ...game.slots.armoryCards
+        ];
+        
+        if (allBoosters.length > 0) {
+            const randomIndex = Math.floor(Math.random() * allBoosters.length);
+            const selectedBooster = allBoosters[randomIndex];
+            
+            selectedBooster.disabled = true;
+            
+            const domEl = document.querySelector(`.booster-slot [data-guid="${selectedBooster.guid}"]`);
+            if (domEl) {
+                domEl.classList.add("disabled");
+            }
+        }
+    }    
+    if (isDebuffActive("injectors_disabled")) {
+        const injectorCards = document.querySelectorAll('.injector.card');
+        injectorCards.forEach(card => {
+            card.classList.add("disabled");
+            // Disable pointer events so they are unclickable.
+            card.style.pointerEvents = 'none';
+        });
+    }
+    if (isDebuffActive("disable_boosters_until_0_stows") || isDebuffActive("disable_boosters_until_1_attack")) {
+        const allBoosters = [
+            ...game.slots.bridgeCards,
+            ...game.slots.engineeringCards,
+            ...game.slots.armoryCards
+        ];
+        allBoosters.forEach(booster => {
+            booster.disabled = true;
+            const domEl = document.querySelector(`.booster-slot [data-guid="${booster.guid}"]`);
+            if (domEl) {
+                domEl.classList.add("disabled");
+            }
+        });
+    }
+    if (isDebuffActive("disable_multiplicative_boosters")) {
+        const allBoosters = [
+            ...game.slots.bridgeCards,
+            ...game.slots.engineeringCards,
+            ...game.slots.armoryCards
+        ];
+        allBoosters.forEach(booster => {
+            if (booster.multiplicative === true) {
+                booster.disabled = true;
+                const domEl = document.querySelector(`.booster-slot [data-guid="${booster.guid}"]`);
+                if (domEl) {
+                    domEl.classList.add("disabled");
+                }
+            }
+        });
+    }
+    if (isDebuffActive("disable_additive_boosters")) {
+        const allBoosters = [
+            ...game.slots.bridgeCards,
+            ...game.slots.engineeringCards,
+            ...game.slots.armoryCards
+        ];
+        allBoosters.forEach(booster => {
+            if (booster.multiplicative === false || booster.multiplicative === undefined) {
+                booster.disabled = true;
+                const domEl = document.querySelector(`.booster-slot [data-guid="${booster.guid}"]`);
+                if (domEl) {
+                    domEl.classList.add("disabled");
+                }
+            }
+        });
+    }
+    if (isDebuffActive("disable_self_improving_boosters")) {
+        const allBoosters = [
+            ...game.slots.bridgeCards,
+            ...game.slots.engineeringCards,
+            ...game.slots.armoryCards
+        ];
+        allBoosters.forEach(booster => {
+            if (booster.selfImprove) {
+                booster.disabled = true;
+                const domEl = document.querySelector(`.booster-slot [data-guid="${booster.guid}"]`);
+                if (domEl) {
+                    domEl.classList.add("disabled");
+                }
+            }
+        });
+    }
+    if (isDebuffActive("disable_common_boosters")) {
+        const allBoosters = [
+            ...game.slots.bridgeCards,
+            ...game.slots.engineeringCards,
+            ...game.slots.armoryCards
+        ];
+        allBoosters.forEach(booster => {
+            if (booster.rarity === 'common') {
+                booster.disabled = true;
+                const domEl = document.querySelector(`[data-guid="${booster.guid}"]`);
+                if (domEl) {
+                    domEl.classList.add("disabled");
+                }
+            }
+        });
+    }
+    if (isDebuffActive("disable_uncommon_boosters")) {
+        const allBoosters = [
+            ...game.slots.bridgeCards,
+            ...game.slots.engineeringCards,
+            ...game.slots.armoryCards
+        ];
+        allBoosters.forEach(booster => {
+            if (booster.rarity === 'uncommon') {
+                booster.disabled = true;
+                const domEl = document.querySelector(`[data-guid="${booster.guid}"]`);
+                if (domEl) {
+                    domEl.classList.add("disabled");
+                }
+            }
+        });
+    }
+    if (isDebuffActive("disable_rare_boosters")) {
+        const allBoosters = [
+            ...game.slots.bridgeCards,
+            ...game.slots.engineeringCards,
+            ...game.slots.armoryCards
+        ];
+        allBoosters.forEach(booster => {
+            if (booster.rarity === 'rare') {
+                booster.disabled = true;
+                const domEl = document.querySelector(`[data-guid="${booster.guid}"]`);
+                if (domEl) {
+                    domEl.classList.add("disabled");
+                }
+            }
+        });
+    }
+    if (isDebuffActive("disable_legendary_boosters")) {
+        const allBoosters = [
+            ...game.slots.bridgeCards,
+            ...game.slots.engineeringCards,
+            ...game.slots.armoryCards
+        ];
+        allBoosters.forEach(booster => {
+            if (booster.rarity === 'legendary') {
+                booster.disabled = true;
+                const domEl = document.querySelector(`[data-guid="${booster.guid}"]`);
+                if (domEl) {
+                    domEl.classList.add("disabled");
+                }
+            }
+        });
+    }
+    if (isDebuffActive("disable_retriggering_boosters")) {
+        const allBoosters = [
+            ...game.slots.bridgeCards,
+            ...game.slots.engineeringCards,
+            ...game.slots.armoryCards
+        ];
+        allBoosters.forEach(booster => {
+            if (booster.retriggerCondition) {
+                booster.disabled = true;
+                const domEl = document.querySelector(`.booster-slot [data-guid="${booster.guid}"]`);
+                if (domEl) {
+                    domEl.classList.add("disabled");
+                }
+            }
+        });
+    }    
+    if (isDebuffActive("disable_damage_boosters")) {
+        const allBoosters = [
+            ...game.slots.bridgeCards,
+            ...game.slots.engineeringCards,
+            ...game.slots.armoryCards
+        ];
+        allBoosters.forEach(booster => {
+            if (booster.damage) {
+                booster.disabled = true;
+                const domEl = document.querySelector(`.booster-slot [data-guid="${booster.guid}"]`);
+                if (domEl) {
+                    domEl.classList.add("disabled");
+                }
+            }
+        });
+    }   
+    if (isDebuffActive("disable_power_boosters")) {
+        const allBoosters = [
+            ...game.slots.bridgeCards,
+            ...game.slots.engineeringCards,
+            ...game.slots.armoryCards
+        ];
+        allBoosters.forEach(booster => {
+            if (booster.power) {
+                booster.disabled = true;
+                const domEl = document.querySelector(`.booster-slot [data-guid="${booster.guid}"]`);
+                if (domEl) {
+                    domEl.classList.add("disabled");
+                }
+            }
+        });
+    } 
+    if (isDebuffActive("disable_pierce_boosters")) {
+        const allBoosters = [
+            ...game.slots.bridgeCards,
+            ...game.slots.engineeringCards,
+            ...game.slots.armoryCards
+        ];
+        allBoosters.forEach(booster => {
+            if (booster.pierce) {
+                booster.disabled = true;
+                const domEl = document.querySelector(`.booster-slot [data-guid="${booster.guid}"]`);
+                if (domEl) {
+                    domEl.classList.add("disabled");
+                }
+            }
+        });
+    }    
+    if (isDebuffActive("disable_spread_boosters")) {
+        const allBoosters = [
+            ...game.slots.bridgeCards,
+            ...game.slots.engineeringCards,
+            ...game.slots.armoryCards
+        ];
+        allBoosters.forEach(booster => {
+            if (booster.spread) {
+                booster.disabled = true;
+                const domEl = document.querySelector(`.booster-slot [data-guid="${booster.guid}"]`);
+                if (domEl) {
+                    domEl.classList.add("disabled");
+                }
+            }
+        });
+    }  
+    if (isDebuffActive("disable_credits_boosters")) {
+        const allBoosters = [
+            ...game.slots.bridgeCards,
+            ...game.slots.engineeringCards,
+            ...game.slots.armoryCards
+        ];
+        allBoosters.forEach(booster => {
+            if (booster.credits) {
+                booster.disabled = true;
+                const domEl = document.querySelector(`.booster-slot [data-guid="${booster.guid}"]`);
+                if (domEl) {
+                    domEl.classList.add("disabled");
+                }
+            }
+        });
+    }  
+    if (isDebuffActive("disable_xp_boosters")) {
+        const allBoosters = [
+            ...game.slots.bridgeCards,
+            ...game.slots.engineeringCards,
+            ...game.slots.armoryCards
+        ];
+        allBoosters.forEach(booster => {
+            if (booster.xp) {
+                booster.disabled = true;
+                const domEl = document.querySelector(`.booster-slot [data-guid="${booster.guid}"]`);
+                if (domEl) {
+                    domEl.classList.add("disabled");
+                }
+            }
+        });
+    }  
+    
 }
 
 function resetArsenal() {
@@ -550,7 +821,17 @@ function resetArsenal() {
 
     game.arsenal.forEach(card => {
         card.drawn = false;
-	});
+        // Build the debuff names for this card
+        const colorDebuff = "disable_" + card.color.toLowerCase() + "_cards";
+        const typeDebuff = "disable_" + card.type.toLowerCase() + "_cards";
+        
+        // If either debuff is active, disable the card.
+        if (isDebuffActive(colorDebuff) || isDebuffActive(typeDebuff)) {
+            card.disabled = true;
+        } else {
+            card.disabled = false;
+        }
+    });
 
     // Shuffle the game.arsenal to prepare for the next combat
     shuffleArsenal(game.arsenal);
@@ -784,10 +1065,15 @@ async function appendCardsWithDelay() {
             updateCardPower(card, 'hand');
         }
 
-        // Add click event listener to equip/unequip card
-        cardElement.addEventListener('click', function() {
-            equipCard(card, cardElement);
-        });
+        // Add click event listener to equip/unequip card if not disabled
+        if(card.disabled) {
+            cardElement.classList.add('disabled');
+        } else {
+            cardElement.classList.remove('disabled');
+            cardElement.addEventListener('click', function() {
+                equipCard(card, cardElement);
+            });
+        }
     }
 }
 
@@ -831,6 +1117,8 @@ function equipCard(card, cardElement) {
 function spectrumPower() {
     const activeColors = [];
     let power = 0;
+
+    if (isDebuffActive("no_spectrum_bonus")) return power;
 
     // Find active colors in the rainbow gauge
     RAINBOW_ORDER.forEach(color => {
@@ -939,6 +1227,16 @@ function updateButtonAvailability() {
         // If there are equipped cards, ensure buttons are clickable
         if(game.data.stowsRemaining > 0) stowButton.classList.remove('unavailable');
         if(game.data.attacksRemaining > 0) attackButton.classList.remove('unavailable');
+
+        if (isDebuffActive("attacks_require_stowed_combo") && game.temp.combosStowed === 0) {
+            attackButton.classList.add('unavailable');
+        } else {
+            if (game.data.attacksRemaining > 0) {
+                attackButton.classList.remove('unavailable');
+            } else {
+                attackButton.classList.add('unavailable');
+            }
+        }
     } else {
         // If there are no equipped cards, disable buttons
         stowButton.classList.add('unavailable');
@@ -956,6 +1254,11 @@ export async function stowEquippedCards() {
 
     if (game.data.stowsRemaining <= 0) {
         document.querySelector('.stow').classList.add('unavailable');
+    }
+
+    let stowedComboType = document.querySelector('.combo-name span').getAttribute('data-type');
+    if (stowedComboType && game.comboTypeLevels[stowedComboType]) {
+        game.temp.combosStowed += 1;
     }
 
     // reset temporary values
@@ -990,6 +1293,25 @@ export async function stowEquippedCards() {
     clearAmounts();
 
     await drawCards();
+
+    // re-enable all boosters if debuff is active
+    if (isDebuffActive("disable_boosters_until_0_stows") && game.data.stowsRemaining <= 0) {
+        const boosterGroups = [
+            game.slots.bridgeCards,
+            game.slots.engineeringCards,
+            game.slots.armoryCards
+        ];
+        boosterGroups.forEach(group => {
+            group.forEach(booster => {
+                booster.disabled = false;
+                const boosterEl = document.querySelector(`[data-guid="${booster.guid}"]`);
+                if (boosterEl) {
+                    boosterEl.classList.remove("disabled");
+                }
+            });
+        });
+    }
+
 
     refreshDom();
 
@@ -1110,7 +1432,7 @@ export async function playEquippedCards() {
         stats.data.deaths[systemClassKey] = currentCount + 1;
         saveStats(stats.data);
 
-        if(game.data.lives < 1) {
+        if(game.data.lives < 1 || isDebuffActive('time_shifts_disabled')) {
             endCombat('loss');
 		    return;
         } else {
@@ -1120,6 +1442,24 @@ export async function playEquippedCards() {
         }
 		
 	}
+
+    // re-enable all boosters if debuff active
+    if (isDebuffActive("disable_boosters_until_1_attack") && game.data.attacksRemaining === 1) {
+        const boosterGroups = [
+            game.slots.bridgeCards,
+            game.slots.engineeringCards,
+            game.slots.armoryCards
+        ];
+        boosterGroups.forEach(group => {
+            group.forEach(booster => {
+                booster.disabled = false;
+                const boosterEl = document.querySelector(`[data-guid="${booster.guid}"]`);
+                if (boosterEl) {
+                    boosterEl.classList.remove("disabled");
+                }
+            });
+        });
+    }
 
     clearAmounts();
 
@@ -1594,7 +1934,8 @@ async function processBooster(booster, cardElement = false) {
             case 'highest_level_card':
                 // Find the card with the highest level
                 const highestLevel = game.temp.gunCards.reduce((max, card) => {
-                    return card.level > max ? card.level : max;
+                    let level = isDebuffActive('card_levels_nerfed') ? 1 : card.level;
+                    return level > max ? level : max;
                 }, 0);
                 boosterDamage = highestLevel;
                 break;
@@ -1618,7 +1959,7 @@ async function processBooster(booster, cardElement = false) {
             case 'total_blue_levels':
                 const totalBlueLevel = game.temp.gunCards
                     .filter(card => card.color === 'blue') // Filter for blue cards only
-                    .reduce((total, card) => total + card.level, 0); // Sum up the levels starting from 0
+                    .reduce((total, card) => total + (isDebuffActive('card_levels_nerfed') ? 1 : card.level), 0); // Sum up the levels starting from 0
                 boosterPower = totalBlueLevel;
                 break;
             case 'system_class':
@@ -1626,7 +1967,7 @@ async function processBooster(booster, cardElement = false) {
                 break;
             case 'combined_card_level':
                 // Sum the levels of all played cards
-                const combinedLevel = game.temp.gunCards.reduce((total, card) => total + card.level, 0);
+                const combinedLevel = game.temp.gunCards.reduce((total, card) => total + (isDebuffActive('card_levels_nerfed') ? 1 : card.level), 0);
                 boosterPower = combinedLevel;
                 break;
             case 'damage':
@@ -1637,7 +1978,8 @@ async function processBooster(booster, cardElement = false) {
             case 'highest_level_card':
                 // Find the card with the highest level
                 const highestLevelForPower = game.temp.gunCards.reduce((max, card) => {
-                    return card.level > max ? card.level : max;
+                    let level = isDebuffActive('card_levels_nerfed') ? 1 : card.level;
+                    return level > max ? level : max;
                 }, 0);
                 boosterPower = highestLevelForPower;
                 break;
@@ -1665,7 +2007,8 @@ async function processBooster(booster, cardElement = false) {
                 break;
             case 'highest_level_card':
                 const highestLevelForPierce = game.temp.gunCards.reduce((max, card) => {
-                    return card.level > max ? card.level : max;
+                    let level = isDebuffActive('card_levels_nerfed') ? 1 : card.level;
+                    return level > max ? level : max;
                 }, 0);
                 boosterPierce = highestLevelForPierce;
                 break;
@@ -1684,7 +2027,8 @@ async function processBooster(booster, cardElement = false) {
         switch (boosterSpread) {
             case 'highest_level_card':
                 const highestLevelForSpread = game.temp.gunCards.reduce((max, card) => {
-                    return card.level > max ? card.level : max;
+                    let level = isDebuffActive('card_levels_nerfed') ? 1 : card.level;
+                    return level > max ? level : max;
                 }, 0);
                 boosterSpread = highestLevelForSpread;
                 break;
@@ -1898,6 +2242,7 @@ async function processBooster(booster, cardElement = false) {
 async function boosterAction(booster, cardElement = false) {
     let boosterAction = booster.boosterAction !== undefined ? booster.boosterAction : false;
     if (!boosterAction) return false;
+    const levelIncrement = (booster.levels !== undefined ? booster.levels : 1);
     
     // Check for actionChance. If none, default to 1.
     let actionChance = (booster.actionChance !== undefined) ? booster.actionChance : 1;
@@ -1922,7 +2267,7 @@ async function boosterAction(booster, cardElement = false) {
             if (comboType && game.comboTypeLevels[comboType]) {
                 if(cardElement) cardElement.classList.add("active");
                 document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
-                updateComboLevel(comboType, 1);
+                updateComboLevel(comboType, levelIncrement);
                 console.log(`Upgraded ${comboType} to level ${game.comboTypeLevels[comboType].level}`);
             } else {
                 console.log("No combo was played or combo type is unknown.");
@@ -1933,7 +2278,7 @@ async function boosterAction(booster, cardElement = false) {
             if (stowedComboType && game.comboTypeLevels[stowedComboType]) {
                 if(cardElement) cardElement.classList.add("active");
                 document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
-                updateComboLevel(stowedComboType, 1);
+                updateComboLevel(stowedComboType, levelIncrement);
                 console.log(`Upgraded ${stowedComboType} to level ${game.comboTypeLevels[stowedComboType].level}`);
             } else {
                 console.log("No combo was stowed or combo type is unknown.");
@@ -1944,7 +2289,7 @@ async function boosterAction(booster, cardElement = false) {
             const randomCard = game.temp.gunCards[randomIndex];
             const randomCardElement = document.querySelector(`#guns .card[data-guid="${randomCard.guid}"]`);
             if (randomCardElement) {
-                updateCardLevel(randomCard, 1, randomCardElement);
+                updateCardLevel(randomCard, levelIncrement, randomCardElement);
                 document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
                 randomCardElement.classList.add("upgraded");
                 await new Promise(resolve => setTimeout(resolve, game.config.cardDelay)); 
@@ -1958,7 +2303,7 @@ async function boosterAction(booster, cardElement = false) {
             const randomHandCard = game.temp.handCards[randomHandIndex];
             const randomHandCardElement = document.querySelector(`#cards .card[data-guid="${randomHandCard.guid}"]`);
             if (randomHandCardElement) {
-                updateCardLevel(randomHandCard, 1, randomHandCardElement);
+                updateCardLevel(randomHandCard, levelIncrement, randomHandCardElement);
                 document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
                 randomHandCardElement.classList.add("upgraded");
                 await new Promise(resolve => setTimeout(resolve, game.config.cardDelay)); 
@@ -2041,11 +2386,25 @@ async function boosterAction(booster, cardElement = false) {
             statElement.classList.remove("active");
             document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
         break;
+        case 'upgrade_played_cards':
+            for (const gunCard of game.temp.gunCards) {
+                const gunCardElement = document.querySelector(`#guns .card[data-guid="${gunCard.guid}"]`);
+                if (gunCardElement) {
+                    updateCardLevel(gunCard, levelIncrement, gunCardElement);
+                    document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
+                    gunCardElement.classList.add("upgraded");
+                    await new Promise(resolve => setTimeout(resolve, game.config.cardDelay));
+                    gunCardElement.classList.remove("upgraded");
+                } else {
+                    console.log('Could not find card element with data-guid: ', gunCard.guid, 'Tried to pull from game.temp.scoringCards: ', game.temp.gunCards);
+                }
+            }
+        break;
         case 'upgrade_scoring_cards':
             for (const scoringCard of game.temp.scoringCards) {
                 const scoringCardElement = document.querySelector(`#guns .card[data-guid="${scoringCard.guid}"]`);
                 if (scoringCardElement) {
-                    updateCardLevel(scoringCard, 1, scoringCardElement);
+                    updateCardLevel(scoringCard, levelIncrement, scoringCardElement);
                     document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
                     scoringCardElement.classList.add("upgraded");
                     await new Promise(resolve => setTimeout(resolve, game.config.cardDelay));
@@ -2060,7 +2419,7 @@ async function boosterAction(booster, cardElement = false) {
                 if (card.color === 'green') {
                     const greenCardElement = document.querySelector(`#guns .card[data-guid="${card.guid}"]`);
                     if (greenCardElement) {
-                        updateCardLevel(card, 1, greenCardElement);
+                        updateCardLevel(card, levelIncrement, greenCardElement);
                         document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
                         greenCardElement.classList.add("upgraded");
                         await new Promise(resolve => setTimeout(resolve, game.config.cardDelay));
@@ -2122,7 +2481,7 @@ async function boosterAction(booster, cardElement = false) {
             const stowedRandomCard = game.temp.gunCards[stowedRandomIndex];
             const stowedRandomCardElement = document.querySelector(`#guns .card[data-guid="${stowedRandomCard.guid}"]`);
             if (stowedRandomCardElement) {
-                updateCardLevel(stowedRandomCard, 1, stowedRandomCardElement);
+                updateCardLevel(stowedRandomCard, levelIncrement, stowedRandomCardElement);
                 document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
                 stowedRandomCardElement.classList.add("upgraded");
                 await new Promise(resolve => setTimeout(resolve, game.config.cardDelay)); 
@@ -2135,7 +2494,7 @@ async function boosterAction(booster, cardElement = false) {
             for (const stowedCard of game.temp.gunCards) {
                 const stowedCardElement = document.querySelector(`#guns .card[data-guid="${stowedCard.guid}"]`);
                 if (stowedCardElement) {
-                    updateCardLevel(stowedCard, 1, stowedCardElement);
+                    updateCardLevel(stowedCard, levelIncrement, stowedCardElement);
                     document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
                     stowedCardElement.classList.add("upgraded");
                     await new Promise(resolve => setTimeout(resolve, game.config.cardDelay));
@@ -2279,6 +2638,24 @@ async function boosterAction(booster, cardElement = false) {
             }
             break;
         }
+        case 'upgrade_cards': {
+            const guid = cardElement.getAttribute("data-guid");
+            const cardObj = game.temp.gunCards.find(card => card.guid === guid);
+            if (cardObj) {
+                const levelIncrement = (booster.levels !== undefined ? booster.levels : 1);
+                updateCardLevel(cardObj, levelIncrement, cardElement);
+                const boosterEl = document.querySelector(`[data-guid="${booster.guid}"]`);
+                if (boosterEl) {
+                    boosterEl.classList.add("active");
+                }
+                cardElement.classList.add("upgraded");
+                await new Promise(resolve => setTimeout(resolve, game.config.cardDelay));
+                cardElement.classList.remove("upgraded");
+            } else {
+                console.log('Could not find card object for guid:', guid);
+            }
+            break;
+        }        
     }
 }
 
@@ -2550,16 +2927,17 @@ function isCardAffectedByBooster(booster, card) {
         }
 
         // handle cardLevel condition with comparison
+        let level = isDebuffActive('card_levels_nerfed') ? 1 : card.level;
         if (booster.cardLevel !== undefined) {
             switch (booster.compareLevel) {
                 case 'greater':
-                    conditions.push(card.level > booster.cardLevel);
+                    conditions.push(level > booster.cardLevel);
                     break;
                 case 'less':
-                    conditions.push(card.level < booster.cardLevel);
+                    conditions.push(level < booster.cardLevel);
                     break;
                 default: // Assumes 'equal' if compare is not specified
-                    conditions.push(card.level === booster.cardLevel);
+                    conditions.push(level === booster.cardLevel);
             }
         }
 
@@ -2692,57 +3070,59 @@ function scoringCombo(typeCounts, colorCounts, maxColorTypeCount) {
 
 	let possiblecombos = [];
 
-    // Determine combo type based on the collected data and conditions
-    if (isFullSpectrum && allSameType) {
-        possiblecombos.push({ type: "fullSpectrumArmament", baseDamage: game.comboTypeLevels["fullSpectrumArmament"].baseDamage });
-    } 
-    if (maxColorTypeCount === 5 && allSameType) {
-        possiblecombos.push({ type: "fullChromaticArmament", baseDamage: game.comboTypeLevels["fullChromaticArmament"].baseDamage });
-    }
-    if (maxColorTypeCount === 2 && totalCards >= 2) {
-        possiblecombos.push({ type: "biChromaticArmament", baseDamage: game.comboTypeLevels["biChromaticArmament"].baseDamage });
-    }
-    if (maxColorTypeCount === 3 && totalCards >= 3) {
-        possiblecombos.push({ type: "triChromaticArmament", baseDamage: game.comboTypeLevels["triChromaticArmament"].baseDamage });
-    }
-    if (maxColorTypeCount === 4 && totalCards >= 4) {
-        possiblecombos.push({ type: "quadChromaticArmament", baseDamage: game.comboTypeLevels["quadChromaticArmament"].baseDamage });
-    } 
-    if (maxColorCount === 2 && totalCards >= 2) {
-        possiblecombos.push({ type: "biChromatic", baseDamage: game.comboTypeLevels["biChromatic"].baseDamage });
-    }
-    if (maxColorCount === 3 && totalCards >= 3) {
-        possiblecombos.push({ type: "triChromatic", baseDamage: game.comboTypeLevels["triChromatic"].baseDamage });
-    } 
-    if (maxColorCount === 4 && totalCards >= 4) {
-        possiblecombos.push({ type: "quadChromatic", baseDamage: game.comboTypeLevels["quadChromatic"].baseDamage });
-    } 
-    if (maxColorCount === 5 && allSameColor) {
-        possiblecombos.push({ type: "fullChromatic", baseDamage: game.comboTypeLevels["fullChromatic"].baseDamage });
-    } 
-    if (maxTypeCount === 2 && totalCards >= 2) {
-        possiblecombos.push({ type: "biArmament", baseDamage: game.comboTypeLevels["biArmament"].baseDamage });
-    }
-    if (maxTypeCount === 3 && totalCards >= 3) {
-        possiblecombos.push({ type: "triArmament", baseDamage: game.comboTypeLevels["triArmament"].baseDamage });
-    } 
-    if (maxTypeCount === 4 && totalCards >= 4) {
-        possiblecombos.push({ type: "quadArmament", baseDamage: game.comboTypeLevels["quadArmament"].baseDamage });
-    } 
-    if (maxTypeCount === 5 && allSameType) {
-        possiblecombos.push({ type: "fullArmament", baseDamage: game.comboTypeLevels["fullArmament"].baseDamage });
-    } 
-    if (isFullSpectrum) {
-        possiblecombos.push({ type: "fullSpectrum", baseDamage: game.comboTypeLevels["fullSpectrum"].baseDamage });
-    }
-    if (isChargedArmament(typeCounts)) {
-        possiblecombos.push({ type: "chargedArmament", baseDamage: game.comboTypeLevels["chargedArmament"].baseDamage });
-    }
-    if (isChargedChromatic(colorCounts)) {
-        possiblecombos.push({ type: "chargedChromatic", baseDamage: game.comboTypeLevels["chargedChromatic"].baseDamage });
-    }
-    if (isChargedChromaticArmament(game.temp.gunCards)) {
-        possiblecombos.push({ type: "chargedChromaticArmament", baseDamage: game.comboTypeLevels["chargedChromaticArmament"].baseDamage });
+    if(!isDebuffActive('combos_ignored')) {
+        // Determine combo type based on the collected data and conditions
+        if (isFullSpectrum && allSameType) {
+            possiblecombos.push({ type: "fullSpectrumArmament", baseDamage: game.comboTypeLevels["fullSpectrumArmament"].baseDamage });
+        } 
+        if (maxColorTypeCount === 5 && allSameType) {
+            possiblecombos.push({ type: "fullChromaticArmament", baseDamage: game.comboTypeLevels["fullChromaticArmament"].baseDamage });
+        }
+        if (maxColorTypeCount === 2 && totalCards >= 2) {
+            possiblecombos.push({ type: "biChromaticArmament", baseDamage: game.comboTypeLevels["biChromaticArmament"].baseDamage });
+        }
+        if (maxColorTypeCount === 3 && totalCards >= 3) {
+            possiblecombos.push({ type: "triChromaticArmament", baseDamage: game.comboTypeLevels["triChromaticArmament"].baseDamage });
+        }
+        if (maxColorTypeCount === 4 && totalCards >= 4) {
+            possiblecombos.push({ type: "quadChromaticArmament", baseDamage: game.comboTypeLevels["quadChromaticArmament"].baseDamage });
+        } 
+        if (maxColorCount === 2 && totalCards >= 2) {
+            possiblecombos.push({ type: "biChromatic", baseDamage: game.comboTypeLevels["biChromatic"].baseDamage });
+        }
+        if (maxColorCount === 3 && totalCards >= 3) {
+            possiblecombos.push({ type: "triChromatic", baseDamage: game.comboTypeLevels["triChromatic"].baseDamage });
+        } 
+        if (maxColorCount === 4 && totalCards >= 4) {
+            possiblecombos.push({ type: "quadChromatic", baseDamage: game.comboTypeLevels["quadChromatic"].baseDamage });
+        } 
+        if (maxColorCount === 5 && allSameColor) {
+            possiblecombos.push({ type: "fullChromatic", baseDamage: game.comboTypeLevels["fullChromatic"].baseDamage });
+        } 
+        if (maxTypeCount === 2 && totalCards >= 2) {
+            possiblecombos.push({ type: "biArmament", baseDamage: game.comboTypeLevels["biArmament"].baseDamage });
+        }
+        if (maxTypeCount === 3 && totalCards >= 3) {
+            possiblecombos.push({ type: "triArmament", baseDamage: game.comboTypeLevels["triArmament"].baseDamage });
+        } 
+        if (maxTypeCount === 4 && totalCards >= 4) {
+            possiblecombos.push({ type: "quadArmament", baseDamage: game.comboTypeLevels["quadArmament"].baseDamage });
+        } 
+        if (maxTypeCount === 5 && allSameType) {
+            possiblecombos.push({ type: "fullArmament", baseDamage: game.comboTypeLevels["fullArmament"].baseDamage });
+        } 
+        if (isFullSpectrum) {
+            possiblecombos.push({ type: "fullSpectrum", baseDamage: game.comboTypeLevels["fullSpectrum"].baseDamage });
+        }
+        if (isChargedArmament(typeCounts)) {
+            possiblecombos.push({ type: "chargedArmament", baseDamage: game.comboTypeLevels["chargedArmament"].baseDamage });
+        }
+        if (isChargedChromatic(colorCounts)) {
+            possiblecombos.push({ type: "chargedChromatic", baseDamage: game.comboTypeLevels["chargedChromatic"].baseDamage });
+        }
+        if (isChargedChromaticArmament(game.temp.gunCards)) {
+            possiblecombos.push({ type: "chargedChromaticArmament", baseDamage: game.comboTypeLevels["chargedChromaticArmament"].baseDamage });
+        }
     }
 
 	// Loop over possiblecombos to calculate the damage for each combo, and select the highest scoring one
@@ -2817,20 +3197,23 @@ function updatePreviews() {
     let colorTypeCounts = {};
     let maxColorTypeCount = 0; // Max count of cards sharing both color and type
 
-    // Track all equipped card GUIDs
-    const equippedCardGUIDs = game.temp.gunCards.map(card => card.guid);
-
-    // Calculate colorValueSum and dynamic power based on the cards equipped
     game.temp.gunCards.forEach(card => {
-        const baseDamage = game.data.maxWavelengths ? Math.max(...Object.values(COLOR_DAMAGE_SCALE)) : COLOR_DAMAGE_SCALE[card.color];
-        const level = isShielded(card, game.temp.currentEnemy) ? 1 : card.level; // Shielded cards are considered level 1
+        // If the "minimum_wavelengths" debuff is active, use the minimum value;
+        // otherwise, use max value if game.data.maxWavelengths is true, or use the card's own color value.
+        const baseDamage = isDebuffActive("minimum_wavelengths")
+            ? Math.min(...Object.values(COLOR_DAMAGE_SCALE))
+            : (game.data.maxWavelengths 
+                ? Math.max(...Object.values(COLOR_DAMAGE_SCALE)) 
+                : COLOR_DAMAGE_SCALE[card.color]);
+        
+        const level = isShielded(card, game.temp.currentEnemy) || isDebuffActive('card_levels_nerfed') ? 1 : card.level; // Shielded cards are considered level 1
         const damageMultiplier = isVulnerable(card, game.temp.currentEnemy) ? 2 : 1; // Vulnerable cards have their damage doubled
         const cardDamage = Math.round((baseDamage * level) * damageMultiplier);
-
+    
         updateCardDamage(card, cardDamage);
-
+    
         colorValueSum += cardDamage;
-
+    
         // Track counts for combos
         colorCounts[card.color] = (colorCounts[card.color] || 0) + 1;
         typeCounts[card.type] = (typeCounts[card.type] || 0) + 1;
@@ -2838,7 +3221,7 @@ function updatePreviews() {
         colorTypeCounts[key] = (colorTypeCounts[key] || 0) + 1;
         maxColorTypeCount = Math.max(maxColorTypeCount, colorTypeCounts[key]);
     });
-
+    
     // Loop through a second time to multiply dynamic power based on holo cards
     game.temp.gunCards.forEach(card => {
         let holo = getHolo(card);
@@ -2907,16 +3290,20 @@ function updatePreviews() {
 }
 
 function getHolo(card) {
-    return card.holo ? ((game.data.holoPower * game.data.specialMultiplier) + (card.level - 1)) : 1;
+    let level = isDebuffActive('card_levels_nerfed') ? 1 : card.level;
+    return card.holo ? ((game.data.holoPower * game.data.specialMultiplier) + (level - 1)) : 1;
 }
 function getFoil(card) {
-    return card.foil ? ((game.data.foilPower * game.data.specialMultiplier) + (card.level - 1)) : 1;
+    let level = isDebuffActive('card_levels_nerfed') ? 1 : card.level;
+    return card.foil ? ((game.data.foilPower * game.data.specialMultiplier) + (level - 1)) : 1;
 }
 function getSleeve(card) {
-    return card.sleeve ? ((game.data.sleevePower * game.data.specialMultiplier) + (card.level - 1)) : 1;
+    let level = isDebuffActive('card_levels_nerfed') ? 1 : card.level;
+    return card.sleeve ? ((game.data.sleevePower * game.data.specialMultiplier) + (level - 1)) : 1;
 }
 function getGoldLeaf(card) {
-    return card.gold_leaf ? Math.round(((game.data.goldCredits * game.data.creditsMultiplier) + (card.level - 1)) * game.data.specialMultiplier) : 0;
+    let level = isDebuffActive('card_levels_nerfed') ? 1 : card.level;
+    return card.gold_leaf ? Math.round(((game.data.goldCredits * game.data.creditsMultiplier) + (level - 1)) * game.data.specialMultiplier) : 0;
 }
 function getTexture(card) {
     return card.texture ? Math.round(game.data.textureLevels * game.data.specialMultiplier) : 0;
@@ -3103,6 +3490,7 @@ async function improveBoosters(event) {
 export async function endCombat(result) {
 
     game.temp.currentContext = 'overworld';
+    game.temp.combosStowed = 0;
 
     document.querySelectorAll('.gauge-color').forEach(element => {
         element.classList.remove('active');
@@ -3154,6 +3542,13 @@ export async function endCombat(result) {
                 boosterEl.classList.remove("disabled");
             }
         });
+    });
+
+    // Re-enable injector cards that were disabled by debuffs.
+    const injectorCards = document.querySelectorAll('.injector.card');
+    injectorCards.forEach(card => {
+        card.classList.remove("disabled");
+        card.style.pointerEvents = 'auto'; // Or remove the inline style if preferred
     });
     
 }

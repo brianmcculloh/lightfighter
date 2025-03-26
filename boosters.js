@@ -31,6 +31,7 @@ export const ALL_BOOSTERS = [
         damage: 10,                 // damage, power, pierce, spread - multiple values allowed (each as singular non-array values)
         credits: 10,                // will gain credits if booster procs
         xp: 10,                     // will gain xp if booster procs
+        levels: 1,                  // number of levels to improve targeted cards by (default 1)
         multiplicative: true        // true, false (default) - whether the value multiplies the current value
         procChance: .25             // number between 0 and 1 - chance this booster procs per attack
         cardChance: .25             // number between 0 and 1 - chance this booster procs per attack for each card affected
@@ -58,7 +59,6 @@ export const ALL_BOOSTERS = [
 
 
     
-    
 
     red - pierce archetype
     orange - credits archetype
@@ -77,11 +77,11 @@ export const ALL_BOOSTERS = [
     gravity wave - gold leaf archetype
     nano swarm - texture archetype
                                         TOTAL   COMMON  UNCOMMON RARE LEGENDARY
-    Bridge (combo archetype):           65      24      24       14     3
-    Engineering (color archetype):      63      23      23       14     3
-    Armory (type archetype):            65      26      22       14     3
+    Bridge (combo archetype):           67      24      24       16     3
+    Engineering (color archetype):      72      33      23       13     3
+    Armory (type archetype):            71      26      25       76     3
 
-                                Total:  193
+                                Total:  210
 
     */
 
@@ -195,6 +195,107 @@ export const ALL_BOOSTERS = [
         boosterAction: 'upgrade_random_combo',
         description: '+1 level to random combo whenever an indigo card is played.'
     },
+    {
+        id: 'upgrade_red_1', 
+        type: 'engineering', 
+        rarity: 'common', weight: 70, 
+        cardColor: ['red'],
+        boosterAction: 'upgrade_cards',
+        actionChance: .5,
+        levels: 1,
+        description: '50% chance of +1 level to every played red card.'
+    },
+    {
+        id: 'upgrade_orange_2', 
+        type: 'engineering', 
+        rarity: 'common', weight: 70, 
+        cardColor: ['orange'],
+        boosterAction: 'upgrade_cards',
+        actionChance: .45,
+        levels: 2,
+        description: '45% chance of +2 levels to every played orange card.'
+    },
+    {
+        id: 'upgrade_yellow_3', 
+        type: 'engineering', 
+        rarity: 'common', weight: 70, 
+        cardColor: ['yellow'],
+        boosterAction: 'upgrade_cards',
+        actionChance: .4,
+        levels: 3,
+        description: '40% chance of +3 levels to every played yellow card.'
+    },
+    {
+        id: 'upgrade_green_4', 
+        type: 'engineering', 
+        rarity: 'common', weight: 70, 
+        cardColor: ['green'],
+        boosterAction: 'upgrade_cards',
+        actionChance: .35,
+        levels: 4,
+        description: '35% chance of +4 levels to every played green card.'
+    },
+    {
+        id: 'upgrade_blue_5', 
+        type: 'engineering', 
+        rarity: 'common', weight: 70, 
+        cardColor: ['blue'],
+        boosterAction: 'upgrade_cards',
+        actionChance: .3,
+        levels: 5,
+        description: '30% chance of +5 levels to every played blue card.'
+    },
+    {
+        id: 'upgrade_indigo_6', 
+        type: 'engineering', 
+        rarity: 'common', weight: 70, 
+        cardColor: ['indigo'],
+        boosterAction: 'upgrade_cards',
+        actionChance: .25,
+        levels: 6,
+        description: '25% chance of +6 levels to every played indigo card.'
+    },
+    {
+        id: 'upgrade_violet_7', 
+        type: 'engineering', 
+        rarity: 'common', weight: 70, 
+        cardColor: ['violet'],
+        boosterAction: 'upgrade_cards',
+        actionChance: .2,
+        levels: 7,
+        description: '20% chance of +7 levels to every played violet card.'
+    },
+    {
+        id: 'upgrade_white_8', 
+        type: 'engineering', 
+        rarity: 'common', weight: 70, 
+        cardColor: ['white'],
+        boosterAction: 'upgrade_cards',
+        actionChance: .15,
+        levels: 8,
+        description: '15% chance of +8 levels to every played white card.'
+    },
+    {
+        id: 'upgrade_ultraviolet_9', 
+        type: 'engineering', 
+        rarity: 'common', weight: 70, 
+        cardColor: ['ultraviolet'],
+        boosterAction: 'upgrade_cards',
+        actionChance: .1,
+        levels: 9,
+        description: '10% chance of +9 levels to every played ultraviolet card.'
+    },
+    {
+        id: 'upgrade_black_10', 
+        type: 'engineering', 
+        rarity: 'common', weight: 70, 
+        cardColor: ['black'],
+        boosterAction: 'upgrade_cards',
+        actionChance: .05,
+        levels: 10,
+        description: '5% chance of +10 levels to every played black card.'
+    },
+ 
  
     // armory
     {id: 'plasma_cell_played', type: 'armory', rarity: 'common', weight: 100, cardType: 'plasma_cell', damage: 10, selfImprove: 'damage', improveAmount: 25, description: '+<span class="description-damage">10</span> damage for every played Plasma Cell. Increase damage by <span class="description-damage-improve">25</span> each time.'},
@@ -1399,6 +1500,42 @@ export const ALL_BOOSTERS = [
         multiplicative: true,
         description: 'x power for every scoring card equal to total number of empty booster slots + 1 if this is the only booster in its group.'
     },
+    {
+        id: 'upgrade_scoring_5', 
+        type: 'armory', 
+        rarity: 'uncommon', weight: 55,
+        procChance: .1,
+        conditional: false,
+        levels: 5,
+        improveAmount: 1,  
+        selfImprove: 'levels',
+        boosterAction: 'upgrade_played_cards',
+        description: '10% chance for +<span class="description-levels">5</span> levels to all played cards. Increase levels by <span class="description-levels-improve">1</span> each time this booster procs.'
+    },
+    {
+        id: 'upgrade_scoring_10', 
+        type: 'armory', 
+        rarity: 'uncommon', weight: 55,
+        procChance: .05,
+        conditional: false,
+        levels: 10,
+        improveAmount: 1,  
+        selfImprove: 'levels',
+        boosterAction: 'upgrade_played_cards',
+        description: '5% chance for +<span class="description-levels">10</span> levels to all played cards. Increase levels by <span class="description-levels-improve">1</span> each time this booster procs.'
+    },
+    {
+        id: 'upgrade_scoring_20', 
+        type: 'armory', 
+        rarity: 'uncommon', weight: 55,
+        procChance: .025,
+        conditional: false,
+        levels: 20,
+        improveAmount: 1,  
+        selfImprove: 'levels',
+        boosterAction: 'upgrade_played_cards',
+        description: '2.5% chance for +<span class="description-levels">20</span> levels to all played cards. Increase levels by <span class="description-levels-improve">1</span> each time this booster procs.'
+    },
 
 
     // RARE
@@ -1466,20 +1603,27 @@ export const ALL_BOOSTERS = [
         spread: 1.1,
         description: 'x<span class="description-spread">1.1</span> spread.'
     },
+    {
+        id: 'double_right', 
+        type: 'bridge', 
+        rarity: 'rare', weight: 5,
+        conditional: false,
+        multiplier: 2,
+        description: 'Double the damage, power, pierce, spread, xp, credits, and multiplier effects of the booster to the right.'
+    },
+    {
+        id: 'triple_right', 
+        type: 'bridge', 
+        rarity: 'rare', weight: 3,
+        conditional: false,
+        multiplier: 3,
+        description: 'Triple the damage, power, pierce, spread, xp, credits, and multiplier effects of the booster to the right.'
+    },
 
 
 
 
     // engineering
-    {
-        id: 'upgrade_scoring_cards', 
-        type: 'engineering', 
-        rarity: 'rare', weight: 30,
-        procChance: .2,
-        conditional: false,
-        boosterAction: 'upgrade_scoring_cards',
-        description: '20% chance to upgrade all scoring cards.'
-    },
     {
         id: 'upgrade_played_combo', 
         type: 'engineering', 
@@ -1567,6 +1711,31 @@ export const ALL_BOOSTERS = [
         context: 'stowed',
         boosterAction: 'upgrade_stowed_cards',
         description: '20% chance to upgrade all stowed cards.'
+    },
+    {
+        id: 'double_right', 
+        type: 'armory', 
+        rarity: 'rare', weight: 5,
+        conditional: false,
+        multiplier: 2,
+        description: 'Double the damage, power, pierce, spread, xp, credits, and multiplier effects of the booster to the right.'
+    },
+    {
+        id: 'triple_right', 
+        type: 'armory', 
+        rarity: 'rare', weight: 3,
+        conditional: false,
+        multiplier: 3,
+        description: 'Triple the damage, power, pierce, spread, xp, credits, and multiplier effects of the booster to the right.'
+    },
+    {
+        id: 'upgrade_scoring_cards', 
+        type: 'armory', 
+        rarity: 'rare', weight: 30,
+        procChance: .25,
+        conditional: false,
+        boosterAction: 'upgrade_scoring_cards',
+        description: '25% chance to upgrade all scoring cards.'
     },
 
 
