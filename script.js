@@ -6,10 +6,8 @@
  * TODO: how are we currently leveraging compareEffects on boosters?
  * 
  * 
- * 
  * PHASE II: BALANCE & PLAYTESTING
  * 
- * TODO: overworld should show boosters
  * TODO: splash and intro
  * TODO: settings screen
  * TODO: enhance overworld with messaging/lore
@@ -57,7 +55,7 @@ import stats from './stats.js';
 
 import ALL_ENEMIES from './enemies.js';
 
-import { COLOR_DAMAGE_SCALE, WARM_COLORS, COOL_COLORS, RAINBOW_ORDER, CARD_TYPES, ARCHETYPES, SPECIAL_CARDS, COMET_CARDS, PACK_TYPES } from './cards.js';
+import { COLOR_DAMAGE_SCALE, WARM_COLORS, COOL_COLORS, RAINBOW_ORDER, CARD_TYPES, ARCHETYPES, SPECIAL_CARDS, COMET_CARDS, PACK_TYPES, DEBUFFS } from './cards.js';
 
 document.addEventListener('DOMContentLoaded', async() => {
 
@@ -222,11 +220,23 @@ function createRainbowGauge() {
     });
 
     // Add the power indicator
-    if (!gaugeContainer.querySelector('.gauge-power')) {
+    if (!gaugeContainer.querySelector('.gauge-power-wrapper')) {
+        const gaugePowerWrapper = document.createElement('div');
+        gaugePowerWrapper.classList.add('gauge-power-wrapper');
+    
         const gaugePower = document.createElement('div');
         gaugePower.classList.add('gauge-power');
-        gaugeContainer.appendChild(gaugePower);
-    }
+    
+        const span = document.createElement('span');
+        span.classList.add('gauge-label');
+        span.textContent = 'pwr';
+    
+        gaugePowerWrapper.appendChild(gaugePower);
+        gaugePowerWrapper.appendChild(span);
+    
+        gaugeContainer.appendChild(gaugePowerWrapper);
+    }      
+    
 }
 
 function createArsenal() {
@@ -475,12 +485,10 @@ export function showOverworld(increaseFloor = true) {
         const debuffDiv = document.createElement('div');
         debuffDiv.className = 'enemy-debuff';
         debuffDiv.innerHTML = `Debuff: <span>${
-            (enemy.debuff === undefined || enemy.debuff === null || enemy.debuff === false)
-            ? 'None'
-            : Array.isArray(enemy.debuff)
-                ? prettyName(enemy.debuff.join(', '))
-                : prettyName(enemy.debuff)
-        }</span>`;
+            (!enemy.debuff || (Array.isArray(enemy.debuff) && enemy.debuff.length === 0))
+              ? 'None'
+              : getDebuffDescription(enemy).join(', ')
+        }</span>`;        
         wrapperDiv.appendChild(debuffDiv);
     
         // Create and add the attack button
@@ -518,6 +526,8 @@ export async function startCombat(enemyid) {
     await processDebuffs();
 
     refreshDom();
+    clearAmounts();
+
     await drawCards();
 }
 
@@ -917,17 +927,45 @@ function appendCardInfo(element, item) {
         element.appendChild(span);
     });
 
+    // Create the container for all amounts
     let amountsWrapper = document.createElement('div');
     amountsWrapper.classList.add('amounts-wrapper');
     element.appendChild(amountsWrapper);
 
+    // Define the amount properties and their corresponding labels
     const amounts = ['damage', 'power', 'pierce', 'spread', 'credits', 'xp'];
+    const labels = {
+        damage: 'dmg',
+        power: 'pwr',
+        pierce: 'prc',
+        spread: 'spr',
+        credits: 'crd',
+        xp: 'xp'
+    };
 
     amounts.forEach(prop => {
-        let span = document.createElement('span');
-        span.classList.add(prop);
-        element.setAttribute(`data-${prop}`, item[prop]);
-        amountsWrapper.appendChild(span);
+        // Create a wrapper for each amount-label pair
+        let amountWrapper = document.createElement('div');
+        amountWrapper.classList.add('amount-wrapper');
+        
+        // Create the span for the numeric amount value
+        let spanValue = document.createElement('span');
+        spanValue.classList.add(prop);
+        spanValue.setAttribute('data-amount', 0);
+        // Set the value text; for example, damage might show "+17"
+        spanValue.textContent = item[prop] || '';
+        
+        // Create the span for the label
+        let spanLabel = document.createElement('span');
+        spanLabel.classList.add('amount-label');
+        spanLabel.textContent = labels[prop];
+        
+        // Append the value and label spans to the wrapper
+        amountWrapper.appendChild(spanValue);
+        amountWrapper.appendChild(spanLabel);
+        
+        // Append the wrapper to the main amounts container
+        amountsWrapper.appendChild(amountWrapper);
     });
 
     // Add description to tooltip
@@ -975,13 +1013,40 @@ function appendBoosterInfo(element, item) {
     element.appendChild(amountsWrapper);
 
     const amounts = ['damage', 'power', 'pierce', 'spread', 'credits', 'xp'];
+    const labels = {
+        damage: 'dmg',
+        power: 'pwr',
+        pierce: 'prc',
+        spread: 'spr',
+        credits: 'crd',
+        xp: 'xp'
+    };
 
     amounts.forEach(prop => {
-        let span = document.createElement('span');
-        span.classList.add(prop);
-        span.setAttribute('data-amount', 0);
+        // Create a wrapper for each amount and its label
+        let amountWrapper = document.createElement('div');
+        amountWrapper.classList.add('amount-wrapper');
+
+        // Create the span for the amount value
+        let valueSpan = document.createElement('span');
+        valueSpan.classList.add(prop);
+        valueSpan.setAttribute('data-amount', 0);
+        valueSpan.textContent = item[prop] || '';
+
+        // Retain setting the data attribute on the main element if needed
         element.setAttribute(`data-${prop}`, item[prop]);
-        amountsWrapper.appendChild(span);
+
+        // Create the span for the label
+        let labelSpan = document.createElement('span');
+        labelSpan.classList.add('amount-label');
+        labelSpan.textContent = labels[prop];
+
+        // Append the value span and label span to the wrapper
+        amountWrapper.appendChild(valueSpan);
+        amountWrapper.appendChild(labelSpan);
+
+        // Append the amount wrapper to the amounts container
+        amountsWrapper.appendChild(amountWrapper);
     });
 
     let rarity = item.rarity !== undefined ? item.rarity : 'common';
@@ -1490,11 +1555,11 @@ function clearAmounts() {
 
     // Loop through each amounts-wrapper
     amountsWrappers.forEach(wrapper => {
-        // Select all child spans within the wrapper
-        const spans = wrapper.querySelectorAll('span');
+        // Select only the value spans (excluding the label spans)
+        const valueSpans = wrapper.querySelectorAll('span:not(.amount-label)');
 
-        // Clear the textContent of each span
-        spans.forEach(span => {
+        // Clear the textContent of each value span and reset its data-amount attribute
+        valueSpans.forEach(span => {
             span.textContent = '';
             span.setAttribute('data-amount', 0);
         });
@@ -3632,6 +3697,7 @@ export function shop() {
     populateShopLevelUp();
     populateShopMercenary();
     populateShopRestock();
+    clearAmounts();
 }
 
 export function populateArsenalModal() {
@@ -4793,6 +4859,7 @@ function addBoosterToSlots(booster) {
         addBoosterToDOM(copiedBooster);
         // Remove the booster from the shop
         removeBoosterFromShop(booster);
+        clearAmounts();
         // discover it
         discoverItem("boosters", booster);
     } else {
@@ -5189,6 +5256,10 @@ function updateBoosterArrays() {
     });
 }
 
+function getDebuffDescription(enemy) {
+    return enemy.debuff.map(debuffId => DEBUFFS[debuffId] || "Unknown debuff");
+}
+
 function handleDragEnd(e) {
     //console.log(game.slots.engineeringCards);
 }
@@ -5249,457 +5320,3 @@ function attachEventListeners() {
 
 // Initial attachment of event listeners
 attachEventListeners();
-
-
-
-
-const ben = [
-"Everything Everywhere All At Once",
-"Inglourious Basterds",
-"Parasite",
-"The Empire Strikes Back",
-"When Harry Met Sally",
-"In the Mood for Love",
-"Back to the Future",
-"Uncut Gems",
-"Dune",
-"Dune: Part Two",
-"The Nice Guys",
-"The Holdovers",
-"Whiplash",
-"Drive",
-"The Fugitive",
-"Past Lives",
-"Interstellar",
-"The Last Black Man in San Francisco",
-"1917",
-"The Banshees of Inisherin",
-"Oppenheimer",
-"Inside Out",
-"Midsommar",
-"Raiders of the Lost Ark",
-"Good Will Hunting",
-"Rear Window",
-"The Matrix",
-"Seven Samurai",
-"Apollo 13",
-"Die Hard",
-"Tenet",
-"Before Sunset",
-"Triangle of Sadness",
-"Jaws",
-"Raging Bull",
-"Ex Machina",
-"Phantom Thread",
-"No Country for Old Men",
-"Encanto",
-"Dunkirk",
-"Fight Club",
-"Manchester By The Sea",
-"John Wick",
-"John Wick: Chapter 4",
-"John Wick: Chapter 2",
-"The Shining",
-"The Lord of the Rings: The Return of the King",
-"Her",
-"The Graduate",
-"Mad Max: Fury Road",
-"The Thing",
-"The Royal Tenenbaums",
-"Leave the World Behind",
-"Scarface",
-"Fargo",
-"Blade",
-"The Godfather",
-"Godzilla",
-"Arrival",
-"Poor Things",
-"Rocky IV",
-"Django Unchained",
-"Jurassic Park",
-"Ocean's Eleven",
-"The Revenant",
-"Get Out",
-"O Brother Where Art Thou",
-"Aftersun",
-"The Father",
-"Top Gun: Maverick",
-"Police Story",
-"Spirited Away",
-"Barbie",
-"Terminator 2",
-"Forrest Gump",
-"Before Sunrise",
-"Back to the Future Part II",
-"Home Alone 2",
-"The Menu",
-"The Green Knight",
-"The Dark Knight",
-"Kill Bill",
-"Shaun of the Dead",
-"Godland",
-"Playtime",
-"National Lampoon's Christmas Vacation",
-"Soul",
-"Fury",
-"RRR",
-"Mrs. Doubtfire",
-"American Fiction",
-"Eternal Sunshine of the Spotless Mind",
-"You've Got Mail",
-"JoJo Rabbit",
-"Tropic Thunder",
-"Big",
-"La La Land",
-"Road House (1989)",
-"The Jerk",
-"The Money Pit"
-];
-
-const brian = [
-    "Groundhog Day",
-"Manchester By The Sea",
-"The Matrix",
-"Braveheart",
-"The Fugitive",
-"Terminator 2",
-"Drive",
-"Back to the Future",
-"Bone Tomahawk",
-"Jurassic Park",
-"Inglourious Basterds",
-"Sicario",
-"Starship Troopers",
-"Raising Arizona",
-"Indiana Jones and the Last Crusade",
-"The Empire Strikes Back",
-"The Banshees of Inisherin",
-"Whiplash",
-"Schindler's List",
-"Wall-E",
-"Speed",
-"Raiders of the Lost Ark",
-"Crimson Tide",
-"Clueless",
-"Titanic",
-"Forrest Gump",
-"Saving Private Ryan",
-"Dazed & Confused",
-"Sound of Metal",
-"Mission: Impossible",
-"Star Wars",
-"True Lies",
-"Rear Window",
-"The Silence of the Lambs",
-"Tombstone",
-"Father of the Bride",
-"Far and Away",
-"Maverick",
-"Home Alone",
-"The Money Pit",
-"The Truman Show",
-"Goldeneye",
-"Toy Story",
-"The Shining",
-"The Batman",
-"Once Upon a Time in Hollywood",
-"A Perfect Murder",
-"Prisoners",
-"The Sound of Music",
-"The Departed",
-"Seven",
-"Apollo 13",
-"Eastern Promises",
-"Napoleon Dynamite",
-"Eternal Sunshine of the Spotless Mind",
-"Brian and Charles",
-"Ex Machina",
-"The Hateful Eight",
-"12 Angry Men",
-"The Jerk",
-"The Wrestler",
-"The Bourne Identity",
-"This Is Spinal Tap",
-"Starred Up",
-"No Country for Old Men",
-"Mission Impossible: Fallout",
-"Edge of Tomorrow",
-"Adaptation",
-"What Lies Beneath",
-"Snatch",
-"Casino Royale",
-"Breakdown",
-"The Princess Bride",
-"The Dark Knight",
-"The Exorcist",
-"Fargo",
-"Uncut Gems",
-"True Grit",
-"The Mummy",
-"Flight of the Navigator",
-"Panic Room",
-"The Place Beyond The Pines",
-"Dr. Strangelove",
-"Anora",
-"The Worst Person in the World",
-"Gladiator",
-"Moon",
-"A Shot in the Dark",
-"Die Hard",
-"Top Gun: Maverick",
-"Labyrinth",
-"Rebel Ridge",
-"Goodfellas",
-"Misery",
-"The Shawshank Redemption",
-"Come True",
-"Presumed Innocent",
-"Castaway",
-"The Karate Kid",
-"Friday"
-];
-
-const nick = [
-"Die Hard",
-"The Godfather",
-"The Empire Strikes Back",
-"Gladiator",
-"The Good, The Bad and The Ugly",
-"It's a Wonderful Life",
-"The Godfather: Part II",
-"Star Wars",
-"Halloween",
-"Seven Samurai",
-"Drive",
-"Alien",
-"Unforgiven",
-"Goldeneye",
-"The Departed",
-"Dumb and Dumber",
-"The Fifth Element",
-"The Terminator",
-"The Sting",
-"Pulp Fiction",
-"Inglourious Basterds",
-"The Thing",
-"Night of the Living Dead",
-"Scarface",
-"Casablanca",
-"The Rock",
-"Terminator 2",
-"Rear Window",
-"Predator",
-"Silence of the Lambs",
-"Titanic",
-"Django Unchained",
-"28 Days Later",
-"Lock Stock & Two Smoking Barrels",
-"Return of the Jedi",
-"Blazing Saddles",
-"Snatch",
-"Die Hard 3",
-"Jaws",
-"True Lies",
-"The Count of Monte Cristo",
-"Jurassic Park",
-"Starship Troopers",
-"The Talented Mr. Ripley",
-"The Running Man",
-"Austin Powers: International Man of Mystery",
-"The Mummy",
-"Princess Mononoke",
-"Blade",
-"Bad Boys",
-"A Fistful of Dollars",
-"Saving Private Ryan",
-"Casino Royale",
-"Mission: Impossible",
-"Escape from New York",
-"The Big Lebowski",
-"Apocalypto",
-"Mad Max: Fury Road",
-"Braveheart",
-"Die Hard 2",
-"Seven",
-"Bone Tomahawk",
-"Casino",
-"The Matrix",
-"Return of the Living Dead",
-"The Sound of Music",
-"The Lord of the Rings: The Two Towers",
-"No Country for Old Men",
-"The Pianist",
-"Minority Report",
-"Aliens",
-"The Warriors",
-"12 Monkeys",
-"E.T.",
-"Psycho",
-"Fight Club",
-"Heat",
-"Back to the Future",
-"The Shawshank Redemption",
-"From Dusk Til Dawn",
-"City of God",
-"There Will Be Blood",
-"L.A. Confidential",
-"Sweet Smell of Success",
-"Ghostbusters",
-"Manhunter",
-"The Dark Knight",
-"Edge of Tomorrow",
-"Maverick",
-"Fletch",
-"Pirates of the Caribbean: Curse of the Black Pearl",
-"Lawrence of Arabia",
-"Independence Day",
-"Tombstone",
-"Reservoir Dogs",
-"Rounders",
-"Speed",
-"Step Brothers",
-"Layer Cake",
-"Dredd"
-];
-
-const gris = [
-"The Prestige",
-"The Shawshank Redemption",
-"Interstellar",
-"There Will Be Blood",
-"Escape from Alcatraz",
-"12 Angry Men",
-"Die Hard",
-"Blade Runner 2049",
-"Prisoners",
-"Oppenheimer",
-"Back to the Future",
-"Spiderman Into the Spider-Verse",
-"One Flew Over the Cuckoo's Nest",
-"Dune",
-"Dune: Part Two",
-"Godzilla Minus One",
-"Inglourious Basterds",
-"Arrival",
-"Zodiac",
-"Fury",
-"Apollo 13",
-"Saving Private Ryan",
-"Gladiator",
-"The Fugitive",
-"No Country for Old Men",
-"Rain Man",
-"Gremlins",
-"Toy Story 2",
-"Big",
-"Jaws",
-"Jurassic Park",
-"The Burbs",
-"The Lord of the Rings: The Fellowship of the Ring",
-"Pulp Fiction",
-"Dunkirk",
-"Signs",
-"Terminator 2",
-"Catch Me If You Can",
-"Toy Story",
-"Saltburn",
-"Teenage Mutant Ninja Turtles",
-"Rounders",
-"Moneyball",
-"Forrest Gump",
-"Django Unchained",
-"Ex Machina",
-"Fargo",
-"Tommy Boy",
-"Robocop",
-"The Wolf of Wall Street",
-"Indiana Jones and the Last Crusade",
-"Titanic",
-"Tenet",
-"The Martian",
-"Face Off",
-"Braveheart",
-"Good Will Hunting",
-"The Terminator",
-"The Patriot",
-"Casino Royale",
-"Raiders of the Lost Ark",
-"Unbreakable",
-"Wall-E",
-"Back to the Future Part II",
-"Pirates of the Caribbean: Dead Man's Chest",
-"The Goonies",
-"Up",
-"The Social Network",
-"The Holdovers",
-"Heat",
-"Zero Dark Thirty",
-"Mission Impossible: Fallout",
-"The Big Short",
-"The Fifth Element",
-"Die Hard with a Vengeance",
-"1917",
-"Jojo Rabbit",
-"Beverly Hills Cop",
-"Ferris Bueller's Day Off",
-"The Matrix",
-"The Shining",
-"Mad Max: Fury Road",
-"Alien",
-"The Rock",
-"True Lies",
-"Logan",
-"Planet of the Apes",
-"Avengers Endgame",
-"Spider-Man",
-"Top Gun: Maverick",
-"Predator",
-"The Sandlot",
-"Blade",
-"Uncut Gems",
-"Thor Ragnarok",
-"Mrs. Doubtfire",
-"The Batman",
-"Hook",
-"300",
-"The Greatest Game Ever Played"
-];
-
-  
-function combineAndWeightLists(list1, list2, list3, list4) {
-  const movieScores = {};
-
-  // Assign points for list1
-  list1.forEach((movie, index) => {
-    movieScores[movie] = (movieScores[movie] || 0) + (100 - index);
-  });
-
-  // Assign points for list2
-  list2.forEach((movie, index) => {
-    movieScores[movie] = (movieScores[movie] || 0) + (100 - index);
-  });
-
-  // Assign points for list3
-  list3.forEach((movie, index) => {
-    movieScores[movie] = (movieScores[movie] || 0) + (100 - index);
-  });
-
-  // Assign points for list4
-  list4.forEach((movie, index) => {
-    movieScores[movie] = (movieScores[movie] || 0) + (100 - index);
-  });
-
-  // Convert scores object to an array of [movie, score] pairs
-  const combinedList = Object.entries(movieScores);
-
-  // Sort by score in descending order
-  combinedList.sort((a, b) => b[1] - a[1]);
-
-  // If you want to limit the result to the top 100
-  const top100 = combinedList.slice(0, 100).join('\n');
-
-  console.log(top100);
-  console.log(combinedList.join('\n'));
-}
-
-//combineAndWeightLists(ben, brian, nick, gris);

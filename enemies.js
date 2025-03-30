@@ -1,52 +1,6 @@
 import { Decimal } from 'decimal.js';
 
 /*
-DEBUFFS:
-minus_1_attack                      *
-minus_1_stow                        *
-disable_bridge_booster              *
-disable_engineering_booster         *
-disable_armory_booster              *
-disable_random_booster              *
-no_spectrum_bonus                   *
-minimum_wavelengths                 *
-injectors_disabled                  *
-time_shifts_disabled                *
-combos_ignored                      *
-attacks_require_stowed_combo        *
-disable_boosters_until_0_stows      *
-disable_boosters_until_1_attack     *
-disable_red_cards                   *
-disable_orange_cards                *
-disable_yellow_cards                *
-disable_green_cards                 *
-disable_blue_cards                  *
-disable_indigo_cards                *
-disable_violet_cards                *
-disable_white_cards                 *
-disable_ultraviolet_cards           *
-disable_black_cards                 *
-disable_plasma_cell_cards           *
-disable_dark_matter_cards           *
-disable_quantum_shard_cards         *
-disable_gravity_wave_cards          *
-disable_nano_swarm_cards            *
-disable_multiplicative_boosters     *
-disable_additive_boosters           *
-disable_self_improving_boosters     *
-disable_common_boosters             *
-disable_uncommon_boosters           *
-disable_rare_boosters               *
-disable_legendary_boosters          *
-disable_retriggering_boosters       *
-disable_damage_boosters             *
-disable_power_boosters              *
-disable_pierce_boosters             *
-disable_spread_boosters             *
-disable_credits_boosters            *
-disable_xp_boosters                 *
-card_levels_nerfed                  *
-
 SHIELD/VULNERABILITY
 warm
 cool
@@ -55,34 +9,35 @@ chromatic
 all colors
 all types
 
+DEBUFFS are defined in cards.js
 
 */
 
 const ALL_ENEMIES = [
 
-    {id: 'frigate_1', name: 'Frigate I', max:                   new Decimal(2000), current: new Decimal(0), system: 1, class: 1},
-    {id: 'frigate_2', name: 'Frigate II', max:                  new Decimal(3000), current: new Decimal(0), system: 1, class: 2},
-    {id: 'frigate_3', name: 'Frigate III', max:                 new Decimal(4000), current: new Decimal(0), system: 1, class: 3},
-    {id: 'frigate_4', name: 'Frigate IV', max:                  new Decimal(5000), current: new Decimal(0), system: 1, class: 4},
-    {id: 'frigate_5_a', name: 'Frigate V A Boss', max:          new Decimal(7000), current: new Decimal(0), system: 1, class: 5},
-    {id: 'frigate_5_b', name: 'Frigate V B Boss', max:          new Decimal(7000), current: new Decimal(0), system: 1, class: 5},
-    {id: 'frigate_5_c', name: 'Frigate V C Boss', max:          new Decimal(7000), current: new Decimal(0), system: 1, class: 5},
+    {id: 'frigate_1', name: 'Frigate I', max:                   new Decimal(2000), current: new Decimal(0), system: 1, class: 1, vulnerability: ['warm']},
+    {id: 'frigate_2', name: 'Frigate II', max:                  new Decimal(3000), current: new Decimal(0), system: 1, class: 2, vulnerability: ['warm']},
+    {id: 'frigate_3', name: 'Frigate III', max:                 new Decimal(4000), current: new Decimal(0), system: 1, class: 3, vulnerability: ['warm']},
+    {id: 'frigate_4', name: 'Frigate IV', max:                  new Decimal(5000), current: new Decimal(0), system: 1, class: 4, vulnerability: ['warm']},
+    {id: 'frigate_5_a', name: 'Frigate V A Boss', max:          new Decimal(7000), current: new Decimal(0), system: 1, class: 5, vulnerability: ['warm']},
+    {id: 'frigate_5_b', name: 'Frigate V B Boss', max:          new Decimal(7000), current: new Decimal(0), system: 1, class: 5, vulnerability: ['warm']},
+    {id: 'frigate_5_c', name: 'Frigate V C Boss', max:          new Decimal(7000), current: new Decimal(0), system: 1, class: 5, vulnerability: ['warm']},
 
-    {id: 'cruiser_1', name: 'Cruiser I', max:                   new Decimal(9000), current: new Decimal(0), system: 2, class: 1, vulnerability: ['warm']},
-    {id: 'cruiser_2', name: 'Cruiser II', max:                  new Decimal(12000), current: new Decimal(0), system: 2, class: 2, vulnerability: ['warm']},
-    {id: 'cruiser_3', name: 'Cruiser III', max:                 new Decimal(15000), current: new Decimal(0), system: 2, class: 3, vulnerability: ['warm']},
-    {id: 'cruiser_4', name: 'Cruiser IV', max:                  new Decimal(25000), current: new Decimal(0), system: 2, class: 4, vulnerability: ['warm']},
-    {id: 'cruiser_5_a', name: 'Cruiser V A Boss', max:          new Decimal(35000), current: new Decimal(0), system: 2, class: 5, vulnerability: ['warm']},
-    {id: 'cruiser_5_b', name: 'Cruiser V B Boss', max:          new Decimal(35000), current: new Decimal(0), system: 2, class: 5, vulnerability: ['warm']},
-    {id: 'cruiser_5_c', name: 'Cruiser V C Boss', max:          new Decimal(35000), current: new Decimal(0), system: 2, class: 5, vulnerability: ['warm']},
+    {id: 'cruiser_1', name: 'Cruiser I', max:                   new Decimal(9000), current: new Decimal(0), system: 2, class: 1, vulnerability: ['cool']},
+    {id: 'cruiser_2', name: 'Cruiser II', max:                  new Decimal(12000), current: new Decimal(0), system: 2, class: 2, vulnerability: ['cool']},
+    {id: 'cruiser_3', name: 'Cruiser III', max:                 new Decimal(15000), current: new Decimal(0), system: 2, class: 3, vulnerability: ['cool']},
+    {id: 'cruiser_4', name: 'Cruiser IV', max:                  new Decimal(25000), current: new Decimal(0), system: 2, class: 4, vulnerability: ['cool']},
+    {id: 'cruiser_5_a', name: 'Cruiser V A Boss', max:          new Decimal(35000), current: new Decimal(0), system: 2, class: 5, vulnerability: ['cool']},
+    {id: 'cruiser_5_b', name: 'Cruiser V B Boss', max:          new Decimal(35000), current: new Decimal(0), system: 2, class: 5, vulnerability: ['cool']},
+    {id: 'cruiser_5_c', name: 'Cruiser V C Boss', max:          new Decimal(35000), current: new Decimal(0), system: 2, class: 5, vulnerability: ['cool']},
 
-    {id: 'starship_1', name: 'Starship I', max:                 new Decimal(70000), current: new Decimal(0), system: 3, class: 1, vulnerability: ['cool']},
-    {id: 'starship_2', name: 'Starship II', max:                new Decimal(140000), current: new Decimal(0), system: 3, class: 2, vulnerability: ['cool']},
-    {id: 'starship_3', name: 'Starship III', max:               new Decimal(280000), current: new Decimal(0), system: 3, class: 3, vulnerability: ['cool']},
-    {id: 'starship_c_4', name: 'Starship C IV', max:            new Decimal(520000), current: new Decimal(0), system: 3, class: 4, vulnerability: ['cool']},
-    {id: 'starship_5_a', name: 'Starship V A Boss', max:        new Decimal(1000000), current: new Decimal(0), system: 3, class: 5, vulnerability: ['cool'], debuff: ['time_shifts_disabled']},
-    {id: 'starship_5_b', name: 'Starship V B Boss', max:        new Decimal(1000000), current: new Decimal(0), system: 3, class: 5, vulnerability: ['cool'], debuff: ['injectors_disabled']},
-    {id: 'starship_5_c', name: 'Starship V C Boss', max:        new Decimal(1000000), current: new Decimal(0), system: 3, class: 5, vulnerability: ['cool'], debuff: ['no_spectrum_bonus']},
+    {id: 'starship_1', name: 'Starship I', max:                 new Decimal(70000), current: new Decimal(0), system: 3, class: 1, vulnerability: ['red', 'orange', 'yellow']},
+    {id: 'starship_2', name: 'Starship II', max:                new Decimal(140000), current: new Decimal(0), system: 3, class: 2, vulnerability: ['green', 'blue', 'indigo']},
+    {id: 'starship_3', name: 'Starship III', max:               new Decimal(280000), current: new Decimal(0), system: 3, class: 3, vulnerability: ['violet', 'white', 'ultraviolet']},
+    {id: 'starship_c_4', name: 'Starship C IV', max:            new Decimal(520000), current: new Decimal(0), system: 3, class: 4, vulnerability: ['orange', 'violet', 'black']},
+    {id: 'starship_5_a', name: 'Starship V A Boss', max:        new Decimal(1000000), current: new Decimal(0), system: 3, class: 5, vulnerability: ['red', 'blue'], debuff: ['time_shifts_disabled']},
+    {id: 'starship_5_b', name: 'Starship V B Boss', max:        new Decimal(1000000), current: new Decimal(0), system: 3, class: 5, vulnerability: ['orange', 'indigo'], debuff: ['injectors_disabled']},
+    {id: 'starship_5_c', name: 'Starship V C Boss', max:        new Decimal(1000000), current: new Decimal(0), system: 3, class: 5, vulnerability: ['yellow', 'ultraviolet'], debuff: ['no_spectrum_bonus']},
 
     {id: 'commander_1', name: 'Commander I', max:               new Decimal(2000000), current: new Decimal(0), system: 4, class: 1, vulnerability: ['chromatic']},
     {id: 'commander_2', name: 'Commander II', max:              new Decimal(4000000), current: new Decimal(0), system: 4, class: 2, vulnerability: ['chromatic']},

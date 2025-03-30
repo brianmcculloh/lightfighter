@@ -71,6 +71,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('#stats-modal .done').addEventListener('click', function() {
         document.querySelector('#stats-modal').classList.remove('shown');
     });
+    document.querySelector('#settings-modal .done').addEventListener('click', function() {
+        document.querySelector('#settings-modal').classList.remove('shown');
+    });
     document.querySelector('#stats-modal .reset').addEventListener('click', async function() {
         // Now we have everything we need to do the destroy, stored safely.
         customDialog("Are you sure you want to reset your stats? They will be lost forever!")
@@ -86,6 +89,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('view-arsenal').addEventListener('click', populateArsenalModal);
     document.getElementById('view-combos').addEventListener('click', populateCombosModal);
     document.getElementById('view-stats').addEventListener('click', populateStatsModal);
+    document.getElementById('view-settings').addEventListener('click', async function() {
+        document.querySelector('#settings-modal').classList.add('shown');
+    });
 
     document.querySelector('#shop .mercenary').addEventListener('click', function() {
         visitMercenary();

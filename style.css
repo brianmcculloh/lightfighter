@@ -307,6 +307,7 @@ input[type="text"] {
 #overworld {
   align-items: center;
   justify-content: center;
+  height: calc(69vh - 5px);
 }
 #overworld .system-header {
   font-size: 20px;
@@ -459,6 +460,7 @@ input[type="text"] {
   align-items: stretch;
   flex-direction: column;
   width: 100%;
+  font-size:13px;
 }
 #score .combo-name,
 #score .damage-amounts,
@@ -469,11 +471,14 @@ input[type="text"] {
   gap: 5px;
   position: relative;
 }
-#score .combo-damage {
+#score .combo-damage-wrapper {
   position: absolute;
-  width: 60px;
   left: -65px;
+  width:60px;
   text-align: right;
+  span {
+    font-size:10px;
+  }
 }
 #score .combo-played {
 }
@@ -540,6 +545,10 @@ input[type="text"] {
 #game-info .view-buttons {
   display: flex;
   gap: 5px;
+}
+#game-info .view-buttons .button {
+  padding:5px 5px;
+  height:auto;
 }
 .stats span {
   transition: all 0.2s;
@@ -785,13 +794,16 @@ input[type="text"] {
   opacity: 1;
   transform: translateY(-5px);
 }
-#rainbow-gauge .gauge-power {
+#rainbow-gauge .gauge-power-wrapper {
   position: absolute;
   top: -30px;
   width: 60px;
   left: 50%;
   transform: translateX(-30px);
   text-align: center;
+  span {
+    font-size:10px;
+  }
 }
 
 #cards,
@@ -841,6 +853,9 @@ input[type="text"] {
   .name {
     color: white;
   }
+  .amounts-wrapper {
+    color:white;
+  }
   &[data-rarity="common"] {
     border-color: lime;
   }
@@ -863,6 +878,10 @@ input[type="text"] {
   background: black;
   .name {
     color: white;
+  }
+  .amounts-wrapper {
+    display:none;
+    color:white;
   }
   &.disabled {
     border-color: rgba(255, 255, 255, 0.3);
@@ -908,10 +927,17 @@ input[type="text"] {
   top: -20px;
   text-align: center;
   gap: 10px;
+  .amount-label {
+    font-size:10px;
+  }
 }
-.card .amounts-wrapper span:empty {
-  display: none; /* Hide spans with no content */
+/* Hide spans with no content */
+.card .amounts-wrapper span:empty,
+.card .amount-wrapper span:not(.amount-label):empty + .amount-label,
+.gauge-power-wrapper div:not(.gauge-label):empty + .gauge-label {
+  display: none; 
 }
+
 .card[data-color="red"],
 #color-red {
   background: var(--red);

@@ -104,6 +104,14 @@
         <div class="button reset">RESET</div>
       </div>
 
+      <div id="settings-modal" class="modal scrollbar">
+        <h1>Settings</h1>
+
+        <input id="custom-seed" type="text" placeholder="Custom Seed..." />
+
+        <div class="button done">DONE</div>
+      </div>
+
       <div id="shop">
         <div class="boosters-wrapper">
           <div class="shop-label">Boosters</div>
@@ -170,7 +178,7 @@
         <div id="score">
           <div class="combo-name">
             Combo Type: <span></span>
-            <div class="combo-damage"></div>
+            <div class="combo-damage-wrapper"><div class="combo-damage"></div><span>dmg</span></div>
             <div class="combo-played"></div>
           </div>
           <div class="number damage" id="damage">0</div>
@@ -259,9 +267,9 @@
           <div class="button" id="view-combos">Combos</div>
 
           <div class="button" id="view-stats">Stats</div>
-        </div>
 
-        <input id="custom-seed" type="text" placeholder="Custom Seed..." />
+          <div class="button" id="view-settings">Settings</div>
+        </div>
       </div>
 
       <div class="inventory">
