@@ -4,6 +4,9 @@
  * 
  * TODO: do something cool with critical hits
  * TODO: how are we currently leveraging compareEffects on boosters?
+ * TODO: play first 10 systems and see if enemy health and shield/vuln/debuffs work and feel good
+ * -- then do systems 11 - 18
+ * 
  * 
  * 
  * PHASE II: BALANCE & PLAYTESTING
@@ -46,7 +49,7 @@
 
 import { saveGameState, loadGameState, saveStats, loadStats } from './db.js';
 
-import { setAnimationSpeed, setGameSeed, randDecimal, randString, randFromArray, randArrayIndex, isDebuffActive, sortArsenal, prettyName, weightedSelect, togglePointerEvents, capitalize, formatLargeNumber, updateXPBar, fireAtEnemy, applyBoosterOverlap, applyCardOverlap, applyGunSlotOverlap, applySystemHeartOverlap, enableHoverZIndexBehavior, customDialog, message, flourish } from './utils.js';
+import { setAnimationSpeed, setGameSeed, randDecimal, randString, randFromArray, randArrayIndex, formatTenth, isDebuffActive, sortArsenal, prettyName, weightedSelect, togglePointerEvents, capitalize, formatLargeNumber, updateXPBar, fireAtEnemy, applyBoosterOverlap, applyCardOverlap, applyGunSlotOverlap, applySystemHeartOverlap, enableHoverZIndexBehavior, customDialog, message, flourish } from './utils.js';
 
 import { Decimal } from 'decimal.js';
 
@@ -55,7 +58,7 @@ import stats from './stats.js';
 
 import ALL_ENEMIES from './enemies.js';
 
-import { COLOR_DAMAGE_SCALE, WARM_COLORS, COOL_COLORS, RAINBOW_ORDER, CARD_TYPES, ARCHETYPES, SPECIAL_CARDS, COMET_CARDS, PACK_TYPES, DEBUFFS } from './cards.js';
+import { COLOR_DAMAGE_SCALE, WARM_COLORS, COOL_COLORS, RAINBOW_ORDER, CARD_TYPES, RANKS, ARCHETYPES, SPECIAL_CARDS, COMET_CARDS, PACK_TYPES, DEBUFFS } from './cards.js';
 
 document.addEventListener('DOMContentLoaded', async() => {
 
@@ -93,7 +96,7 @@ export async function init() {
 
     updateGuns();
 
-    populateShopSystemHearts();
+    populateCodex();
 
 	refreshDom();
 
@@ -108,7 +111,7 @@ export async function init() {
 function manualLoad() {
     // Manual adding of boosters and system hearts for dev purposes
     let boosters = [
-        //'upgrade_played_10',
+        //'system_class'
     ];
     let hearts = [
         //'attack',
@@ -329,6 +332,72 @@ function updateGuns() {
     }
 }
 
+function populateCodex() {
+    const codex = document.getElementById('codex');
+    codex.innerHTML = ''; // clear any existing content
+  
+    // — Ranks —
+    const h2Ranks = document.createElement('h2');
+    h2Ranks.textContent = 'Ranks';
+    codex.appendChild(h2Ranks);
+  
+    const ulRanks = document.createElement('ul');
+    RANKS.forEach((rankObj, idx) => {
+      const li = document.createElement('li');
+      li.textContent = `${idx}: ${rankObj.name} (${rankObj.description})`;
+      ulRanks.appendChild(li);
+    });
+    codex.appendChild(ulRanks);
+  
+    // — System Hearts (unique by id) —
+    const h2Hearts = document.createElement('h2');
+    h2Hearts.textContent = 'System Hearts';
+    codex.appendChild(h2Hearts);
+  
+    const ulHearts = document.createElement('ul');
+    const seenIds = new Set();
+    game.systemHearts.forEach(heart => {
+      if (!seenIds.has(heart.id)) {
+        seenIds.add(heart.id);
+        const li = document.createElement('li');
+        li.textContent = `${heart.name} (${heart.description})`;
+        ulHearts.appendChild(li);
+      }
+    });
+    codex.appendChild(ulHearts);
+  
+    // — Packs (strip out any <span> tags) —
+    const h2Packs = document.createElement('h2');
+    h2Packs.textContent = 'Packs';
+    codex.appendChild(h2Packs);
+  
+    const ulPacks = document.createElement('ul');
+    PACK_TYPES.forEach(pack => {
+      // replace any <span…>inner</span> with just "inner"
+      const cleanDesc = pack.description.replace(/<span[^>]*>(.*?)<\/span>/g, '$1');
+      const li = document.createElement('li');
+      li.textContent = `${pack.name}: ${cleanDesc}`;
+      ulPacks.appendChild(li);
+    });
+    codex.appendChild(ulPacks);
+
+    // — Special Cards (only those with a function) —
+    const h2Special = document.createElement('h2');
+    h2Special.textContent = 'Special Cards';
+    codex.appendChild(h2Special);
+
+    const ulSpecial = document.createElement('ul');
+    SPECIAL_CARDS.forEach(card => {
+    if (card.function) {
+        const li = document.createElement('li');
+        li.textContent = `${card.name}: ${card.function}`;
+        ulSpecial.appendChild(li);
+    }
+    });
+    codex.appendChild(ulSpecial);
+
+}
+
 export function refreshDom() {
     document.querySelector('.attack .remaining').textContent = game.data.attacksRemaining;
     document.querySelectorAll('.attack .total').forEach(element => {
@@ -343,14 +412,15 @@ export function refreshDom() {
 
     document.querySelector('.stats .lives .total').textContent = game.data.lives;
     document.querySelector('.stats .credits span').textContent = game.data.credits;
-    document.querySelector('.stats .foil .total').textContent = (game.data.foilPower * game.data.specialMultiplier);
-    document.querySelector('.stats .holo .total').textContent = (game.data.holoPower * game.data.specialMultiplier);
-    document.querySelector('.stats .sleeve .total').textContent = (game.data.sleevePower * game.data.specialMultiplier);
-    document.querySelector('.stats .gold-leaf .total').textContent = (game.data.goldCredits * game.data.specialMultiplier * game.data.creditsMultiplier);
-    document.querySelector('.stats .texture .total').textContent = (game.data.textureLevels * game.data.specialMultiplier);
+    document.querySelector('.stats .foilPower .total').textContent = (game.data.foilPower * game.data.specialMultiplier);
+    document.querySelector('.stats .holoPower .total').textContent = (game.data.holoPower * game.data.specialMultiplier);
+    document.querySelector('.stats .sleevePower .total').textContent = (game.data.sleevePower * game.data.specialMultiplier);
+    document.querySelector('.stats .goldCredits .total').textContent = (game.data.goldCredits * game.data.specialMultiplier * game.data.creditsMultiplier);
+    document.querySelector('.stats .textureLevels .total').textContent = (game.data.textureLevels * game.data.specialMultiplier);
 
     document.querySelector('.current-system span').textContent = game.data.system;
     document.querySelector('.current-class span').textContent = game.data.class;
+    document.querySelector('.current-rank span').textContent = `${stats.data.rank} (${RANKS[stats.data.rank].name})`;
 
 	updateButtonAvailability();
 	updatePreviews();
@@ -381,135 +451,181 @@ function addCard(type, color) {
  * @param {string|null} attribute - The attribute to search for (e.g., 'type', 'improveEvent'), or null to get all boosters.
  * @param {any} value - The value(s) of the attribute to match. Can be a single value or an array of values.
  * @param {string|null} excludeGuid - GUID of the booster to exclude from the results, or null to include all boosters.
- * @returns {Array} An array of boosters matching the criteria or all boosters if no criteria given.
+ * @param {boolean} [includeDisabled=true] - Whether to include boosters that are disabled (booster.disabled === true).
+ * @returns {Array} An array of boosters matching the criteria.
  */
-function findBoosters(attribute = null, value = null, excludeGuid = null) {
+function findBoosters(
+    attribute = null,
+    value = null,
+    excludeGuid = null,
+    includeDisabled = true
+  ) {
     // Combine all booster arrays into a single array
     const allBoosters = [
-        ...game.slots.bridgeCards,
-        ...game.slots.engineeringCards,
-        ...game.slots.armoryCards
+      ...game.slots.bridgeCards,
+      ...game.slots.engineeringCards,
+      ...game.slots.armoryCards
     ];
-
-    // If no attribute or value is provided and no specific booster to exclude
-    if (attribute === null || value === null) {
-        return excludeGuid
-            ? allBoosters.filter(booster => booster.guid !== excludeGuid)
-            : allBoosters;
+  
+    let results = allBoosters;
+  
+    // 1) If attribute & value provided, filter by them
+    if (attribute !== null && value !== null) {
+      results = results.filter(booster => {
+        const matches = Array.isArray(value)
+          ? value.includes(booster[attribute])
+          : booster[attribute] === value;
+        return matches;
+      });
     }
-
-    // Filter boosters based on the attribute and value/values, and exclude a specific booster if excludeGuid is provided
-    const matchingBoosters = allBoosters.filter(booster => {
-        // 1) Check if value is an Array or a single value
-        const matchesAttributeAndValue = Array.isArray(value)
-            ? value.includes(booster[attribute])
-            : booster[attribute] === value;
-
-        // 2) Also check excludeGuid
-        if (excludeGuid) {
-            return matchesAttributeAndValue && booster.guid !== excludeGuid;
-        } else {
-            return matchesAttributeAndValue;
-        }
-    });
-
-    return matchingBoosters;
-}
+  
+    // 2) Exclude a specific GUID if requested
+    if (excludeGuid) {
+      results = results.filter(booster => booster.guid !== excludeGuid);
+    }
+  
+    // 3) Filter out disabled boosters if requested
+    if (!includeDisabled) {
+      results = results.filter(booster => !booster.disabled);
+    }
+  
+    return results;
+}  
 
 export function showOverworld(increaseFloor = true) {
-
-    saveGameState(game);
-    
-    togglePointerEvents(true); // Enable pointer events
+    togglePointerEvents(true);
     document.getElementById('overworld').classList.add('shown');
-    
+    document.querySelector('#shop .mercenary').classList.remove('unavailable');
+
     if (increaseFloor) {
         if (game.temp.currentEnemy.class === 5) {
             game.data.system += 1;
             game.data.class = 0;
-            populateShopSystemHearts();
+            game.temp.systemHeartAvailable = true;
         }
         game.data.class++;
     }
+    saveGameState(game);
+    if(game.temp.systemHeartAvailable) {
+        populateShopSystemHearts();
+    }
 
-    // Filter enemies by the current system and class
-    let enemies = ALL_ENEMIES.filter(obj => obj.system == game.data.system && obj.class == game.data.class);
+    // 1) pick & shuffle
+    let enemies = ALL_ENEMIES
+      .filter(e => e.system === game.data.system && e.class === game.data.class)
+      .sort(() => 0.5 - randDecimal());
 
-    // Shuffle the enemies array to randomize the order
-    enemies.sort(() => 0.5 - randDecimal());
-    
-    // Determine the number of enemies to display
-    const numberOfEnemies = (game.temp.currentEnemy.class === 4) ? 3 : 1; // 4 actually denotes class 5 because it's still the previous class
-    let selectedEnemies = enemies.slice(0, numberOfEnemies);
+    const count = (game.temp.currentEnemy.class >= 4) ? 3 : 1;
+    const selectedEnemies = enemies.slice(0, count);
 
-    // Assuming you have a container to append the enemy buttons
-    const enemiesContainer = document.getElementById('enemies');
-    enemiesContainer.innerHTML = ''; // Clear previous enemies
-    
+    // 2) init our temp stores
+    game.temp.currentShield        = {};
+    game.temp.currentVulnerability = {};
+    game.temp.currentDebuff       = {};
+
+    // 3) for each enemy, decide shield/vuln/debuff
     selectedEnemies.forEach(enemy => {
-        // Create a wrapper div for the enemy name and attack button
-        const wrapperDiv = document.createElement('div');
-        wrapperDiv.className = 'enemy-wrapper';
-    
-        // Create and add the enemy name element
-        const enemyNameDiv = document.createElement('div');
-        enemyNameDiv.className = 'enemy-name';
-        enemyNameDiv.textContent = enemy.name;
-        wrapperDiv.appendChild(enemyNameDiv);
-    
-        // Display shield
+        // helper to normalize into array
+        const norm = val => Array.isArray(val) ? val : (val ? [val] : []);
+
+        // shield
+        const shields = norm(enemy.shield);
+        if (enemy.random?.includes('shield') && shields.length) {
+            const i = Math.floor(randDecimal() * shields.length);
+            game.temp.currentShield[enemy.id] = shields[i];
+        } else {
+            game.temp.currentShield[enemy.id] = shields.length
+              ? (shields.length === 1 ? shields[0] : shields)
+              : [];
+        }
+
+        // vulnerability
+        const vulns = norm(enemy.vulnerability);
+        if (enemy.random?.includes('vulnerability') && vulns.length) {
+            const i = Math.floor(randDecimal() * vulns.length);
+            game.temp.currentVulnerability[enemy.id] = vulns[i];
+        } else {
+            game.temp.currentVulnerability[enemy.id] = vulns.length
+              ? (vulns.length === 1 ? vulns[0] : vulns)
+              : [];
+        }
+
+        // debuff
+        const debuffs = norm(enemy.debuff);
+        if (enemy.random?.includes('debuff') && debuffs.length) {
+            const i = Math.floor(randDecimal() * debuffs.length);
+            game.temp.currentDebuff[enemy.id] = debuffs[i];
+        } else {
+            game.temp.currentDebuff[enemy.id] = debuffs.length
+              ? (debuffs.length === 1 ? debuffs[0] : debuffs)
+              : [];
+        }
+    });
+
+    // 4) render
+    const container = document.getElementById('enemies');
+    container.innerHTML = '';
+
+    selectedEnemies.forEach(enemy => {
+        const wrap = document.createElement('div');
+        wrap.className = 'enemy-wrapper';
+
+        // NAME
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'enemy-name';
+        nameDiv.textContent = enemy.name;
+        wrap.appendChild(nameDiv);
+
+        // SHIELD
+        const sh = game.temp.currentShield[enemy.id];
+        const shieldText = (!sh || (Array.isArray(sh) && sh.length === 0))
+          ? 'None'
+          : Array.isArray(sh)
+            ? prettyName(sh.join(', '))
+            : prettyName(sh);
         const shieldDiv = document.createElement('div');
         shieldDiv.className = 'enemy-shield';
-        shieldDiv.innerHTML = `Shield: <span>${
-            (enemy.shield === undefined || enemy.shield === null || enemy.shield === false)
-            ? 'None'
-            : Array.isArray(enemy.shield)
-                ? prettyName(enemy.shield.join(', '))
-                : prettyName(enemy.shield)
-        }</span>`;
-        wrapperDiv.appendChild(shieldDiv);
+        shieldDiv.innerHTML = `Shield: <span>${shieldText}</span>`;
+        wrap.appendChild(shieldDiv);
 
-        // Display vulnerability
-        const vulnerabilityDiv = document.createElement('div');
-        vulnerabilityDiv.className = 'enemy-vulnerability';
-        vulnerabilityDiv.innerHTML = `Vulnerability: <span>${
-            (enemy.vulnerability === undefined || enemy.vulnerability === null || enemy.vulnerability === false)
-            ? 'None'
-            : Array.isArray(enemy.vulnerability)
-                ? prettyName(enemy.vulnerability.join(', '))
-                : prettyName(enemy.vulnerability)
-        }</span>`;
-        wrapperDiv.appendChild(vulnerabilityDiv);
+        // VULNERABILITY
+        const vu = game.temp.currentVulnerability[enemy.id];
+        const vulnText = (!vu || (Array.isArray(vu) && vu.length === 0))
+          ? 'None'
+          : Array.isArray(vu)
+            ? prettyName(vu.join(', '))
+            : prettyName(vu);
+        const vulnDiv = document.createElement('div');
+        vulnDiv.className = 'enemy-vulnerability';
+        vulnDiv.innerHTML = `Vulnerability: <span>${vulnText}</span>`;
+        wrap.appendChild(vulnDiv);
 
-        // Display debuff
+        // DEBUFF
+        const db = game.temp.currentDebuff[enemy.id];
+        const debuffText = (!db || (Array.isArray(db) && db.length === 0))
+          ? 'None'
+          : Array.isArray(db)
+            ? prettyName(db.join(', '))
+            : prettyName(db);
         const debuffDiv = document.createElement('div');
         debuffDiv.className = 'enemy-debuff';
-        debuffDiv.innerHTML = `Debuff: <span>${
-            (!enemy.debuff || (Array.isArray(enemy.debuff) && enemy.debuff.length === 0))
-              ? 'None'
-              : getDebuffDescription(enemy).join(', ')
-        }</span>`;        
-        wrapperDiv.appendChild(debuffDiv);
-    
-        // Create and add the attack button
-        const attackButtonDiv = document.createElement('div');
-        attackButtonDiv.className = 'start-combat button';
-        attackButtonDiv.setAttribute('data-id', enemy.id);
-        attackButtonDiv.textContent = 'BATTLE';
-        wrapperDiv.appendChild(attackButtonDiv);
-    
-        // Append the wrapper to the enemies container
-        enemiesContainer.appendChild(wrapperDiv);
-    
-        // Add event listener for the attack button
-        attackButtonDiv.addEventListener('click', function() {
-            startCombat(enemy.id);
-        });
-    });
-    
-    // Update the overworld header, if needed. Adjust this part based on your specific requirements
-    document.querySelector('#overworld .system-header').textContent = `System ${game.data.system}, Class ${game.data.class}`;
+        debuffDiv.innerHTML = `Debuff: <span>${debuffText}</span>`;
+        wrap.appendChild(debuffDiv);
 
+        // BATTLE BUTTON
+        const btn = document.createElement('div');
+        btn.className = 'start-combat button';
+        btn.setAttribute('data-id', enemy.id);
+        btn.textContent = 'BATTLE';
+        btn.addEventListener('click', () => startCombat(enemy.id));
+        wrap.appendChild(btn);
+
+        container.appendChild(wrap);
+    });
+
+    // 5) header
+    document.querySelector('#overworld .system-header')
+      .textContent = `System ${game.data.system}, Class ${game.data.class}`;
 }
 
 export async function startCombat(enemyid) {
@@ -630,7 +746,10 @@ async function processDebuffs() {
             ...game.slots.armoryCards
         ];
         allBoosters.forEach(booster => {
-            if (booster.multiplicative === false || booster.multiplicative === undefined) {
+            if (
+                (booster.multiplicative === false || booster.multiplicative === undefined) &&
+                (booster.damage || booster.power || booster.pierce || booster.spread || booster.credits || booster.xp)
+            ) {
                 booster.disabled = true;
                 const domEl = document.querySelector(`.booster-slot [data-guid="${booster.guid}"]`);
                 if (domEl) {
@@ -638,7 +757,7 @@ async function processDebuffs() {
                 }
             }
         });
-    }
+    }    
     if (isDebuffActive("disable_self_improving_boosters")) {
         const allBoosters = [
             ...game.slots.bridgeCards,
@@ -945,18 +1064,24 @@ function appendCardInfo(element, item) {
 
     amounts.forEach(prop => {
         // Create a wrapper for each amount-label pair
-        let amountWrapper = document.createElement('div');
+        const amountWrapper = document.createElement('div');
         amountWrapper.classList.add('amount-wrapper');
         
+        // Parse the raw numeric value (or default to 0)
+        const rawValue = parseFloat(item[prop]) || 0;
+        // If zero, show nothing; otherwise format to the tenth
+        const displayValue = rawValue === 0
+          ? ''
+          : formatTenth(rawValue);
+        
         // Create the span for the numeric amount value
-        let spanValue = document.createElement('span');
+        const spanValue = document.createElement('span');
         spanValue.classList.add(prop);
-        spanValue.setAttribute('data-amount', 0);
-        // Set the value text; for example, damage might show "+17"
-        spanValue.textContent = item[prop] || '';
+        spanValue.setAttribute('data-amount', rawValue);
+        spanValue.textContent = displayValue;
         
         // Create the span for the label
-        let spanLabel = document.createElement('span');
+        const spanLabel = document.createElement('span');
         spanLabel.classList.add('amount-label');
         spanLabel.textContent = labels[prop];
         
@@ -966,7 +1091,7 @@ function appendCardInfo(element, item) {
         
         // Append the wrapper to the main amounts container
         amountsWrapper.appendChild(amountWrapper);
-    });
+    });     
 
     // Add description to tooltip
     const colorArchetype = ARCHETYPES[item['color']] || '';
@@ -1024,30 +1149,37 @@ function appendBoosterInfo(element, item) {
 
     amounts.forEach(prop => {
         // Create a wrapper for each amount and its label
-        let amountWrapper = document.createElement('div');
+        const amountWrapper = document.createElement('div');
         amountWrapper.classList.add('amount-wrapper');
-
+    
+        // Parse the raw numeric value (or default to 0)
+        const rawValue = parseFloat(item[prop]) || 0;
+        // If zero, show nothing; otherwise format to the tenth
+        const displayValue = rawValue === 0
+          ? ''
+          : formatTenth(rawValue);
+    
         // Create the span for the amount value
-        let valueSpan = document.createElement('span');
+        const valueSpan = document.createElement('span');
         valueSpan.classList.add(prop);
-        valueSpan.setAttribute('data-amount', 0);
-        valueSpan.textContent = item[prop] || '';
-
+        valueSpan.setAttribute('data-amount', rawValue);
+        valueSpan.textContent = displayValue;
+    
         // Retain setting the data attribute on the main element if needed
-        element.setAttribute(`data-${prop}`, item[prop]);
-
+        element.setAttribute(`data-${prop}`, rawValue);
+    
         // Create the span for the label
-        let labelSpan = document.createElement('span');
+        const labelSpan = document.createElement('span');
         labelSpan.classList.add('amount-label');
         labelSpan.textContent = labels[prop];
-
+    
         // Append the value span and label span to the wrapper
         amountWrapper.appendChild(valueSpan);
         amountWrapper.appendChild(labelSpan);
-
+    
         // Append the amount wrapper to the amounts container
         amountsWrapper.appendChild(amountWrapper);
-    });
+    });       
 
     let rarity = item.rarity !== undefined ? item.rarity : 'common';
     /*let itemRarity = document.createElement('span');
@@ -1089,10 +1221,10 @@ async function drawCards() {
     gaugeColors.forEach(colorElement => {
         colorElement.classList.remove('active');
     });
-    document.querySelector('.gauge-power').textContent = '';
+    document.querySelector('.gauge-power').textContent = '+0';
 
     if(game.arsenal.length === 0 && currentHandSize === 0) {
-        endCombat('loss');
+        await endCombat('loss');
         return;
     }
 
@@ -1146,14 +1278,16 @@ async function appendCardsWithDelay() {
             updateCardPower(card, 'hand');
         }
 
-        // Add click event listener to equip/unequip card if not disabled
+        // Add click event listener to equip/unequip card
+        cardElement.addEventListener('click', function() {
+            equipCard(card, cardElement);
+        });
+
+        // Check if card is disabled
         if(card.disabled) {
             cardElement.classList.add('disabled');
         } else {
             cardElement.classList.remove('disabled');
-            cardElement.addEventListener('click', function() {
-                equipCard(card, cardElement);
-            });
         }
     }
 }
@@ -1229,7 +1363,7 @@ function spectrumPower() {
     // If colors are contiguous, calculate and add power
     if (areContiguous) {
         activeColors.forEach(color => {
-            power += (COLOR_DAMAGE_SCALE[color] - 9);
+            power += COLOR_DAMAGE_SCALE[color];
         });
     }
 
@@ -1237,67 +1371,61 @@ function spectrumPower() {
 }
 
 function loadEnemy(enemyid) {
-    let enemy = ALL_ENEMIES.filter(obj => obj.id == enemyid)[0];
+    // 1) Find & store current enemy
+    const enemy = ALL_ENEMIES.find(e => e.id === enemyid);
     game.temp.currentEnemy = enemy;
     enemy.current = enemy.max;
 
-    // Clear previous enemy ship
-    const enemyShipContainer = document.querySelector('.enemy-ship');
-    enemyShipContainer.innerHTML = ''; // Remove existing children (if any)
+    // 2) Reset & rebuild the ship UI
+    const shipContainer = document.querySelector('.enemy-ship');
+    shipContainer.innerHTML = '';
+    const shipBar = document.createElement('div');
+    shipBar.className = 'enemy-health-bar fade-in';
+    shipContainer.appendChild(shipBar);
+    const healthPreview = document.createElement('div');
+    healthPreview.className = 'enemy-health-preview fade-in';
+    shipContainer.appendChild(healthPreview);
 
-    // Append new enemy ship
-    const enemyShipDiv = document.createElement('div');
-    enemyShipDiv.className = 'enemy-health-bar fade-in';
-    enemyShipContainer.appendChild(enemyShipDiv);
+    // 3) Name & health text
+    const nameEl = document.querySelector('#enemy-info .name');
+    nameEl.textContent = enemy.name;
+    nameEl.classList.add('fade-in');
 
-    // Append new enemy health preview
-    const enemyHealthDiv = document.createElement('div');
-    enemyHealthDiv.className = 'enemy-health-preview fade-in';
-    enemyShipContainer.appendChild(enemyHealthDiv);
+    const currEl = document.querySelector('#enemy-info .health .current');
+    currEl.textContent = formatLargeNumber(enemy.current);
+    currEl.classList.add('fade-in');
 
-    // Enemy name
-    const enemyName = document.querySelector('#enemy-info .name');
-    enemyName.textContent = enemy.name;
-    enemyName.classList.add('fade-in');
+    const maxEl = document.querySelector('#enemy-info .health .max');
+    maxEl.textContent = formatLargeNumber(enemy.max);
+    maxEl.classList.add('fade-in');
 
-    // Enemy health current
-    const enemyHealthCurrent = document.querySelector('#enemy-info .health .current');
-    enemyHealthCurrent.textContent = formatLargeNumber(enemy.current);
-    enemyHealthCurrent.classList.add('fade-in');
+    // 4) Pull from game.temp.* instead of enemy.*
+    const sh   = game.temp.currentShield[enemyid];
+    const vu   = game.temp.currentVulnerability[enemyid];
+    const db   = game.temp.currentDebuff[enemyid];
 
-    // Enemy health max
-    const enemyHealthMax = document.querySelector('#enemy-info .health .max');
-    enemyHealthMax.textContent = formatLargeNumber(enemy.max);
-    enemyHealthMax.classList.add('fade-in');
+    const shieldText = (!sh || (Array.isArray(sh) && sh.length === 0))
+      ? 'None'
+      : Array.isArray(sh)
+        ? prettyName(sh.join(', '))
+        : prettyName(sh);
 
-    // Shield, vulnerability, and debuffs
-    const shieldElement = document.querySelector('#enemy-info .enemy-shield span');
-    const vulnerabilityElement = document.querySelector('#enemy-info .enemy-vulnerability span');
-    const debuffElement = document.querySelector('#enemy-info .enemy-debuff span');
-    
-    if (enemy.shield === undefined || enemy.shield === null || enemy.shield === false) {
-        shieldElement.textContent = 'None';
-    } else {
-        shieldElement.textContent = Array.isArray(enemy.shield)
-            ? prettyName(enemy.shield.join(', '))
-            : prettyName(enemy.shield);
-    }
-    
-    if (enemy.vulnerability === undefined || enemy.vulnerability === null || enemy.vulnerability === false) {
-        vulnerabilityElement.textContent = 'None';
-    } else {
-        vulnerabilityElement.textContent = Array.isArray(enemy.vulnerability)
-            ? prettyName(enemy.vulnerability.join(', '))
-            : prettyName(enemy.vulnerability);
-    }
-    
-    if (enemy.debuff === undefined || enemy.debuff === null || enemy.debuff === false) {
-        debuffElement.textContent = 'None';
-    } else {
-        debuffElement.textContent = Array.isArray(enemy.debuff)
-            ? prettyName(enemy.debuff.join(', '))
-            : prettyName(enemy.debuff);
-    }    
+    const vulnText = (!vu || (Array.isArray(vu) && vu.length === 0))
+      ? 'None'
+      : Array.isArray(vu)
+        ? prettyName(vu.join(', '))
+        : prettyName(vu);
+
+    const debuffText = (!db || (Array.isArray(db) && db.length === 0))
+      ? 'None'
+      : Array.isArray(db)
+        ? prettyName(db.join(', '))
+        : prettyName(db);
+
+    // 5) Update the DOM spans
+    document.querySelector('#enemy-info .enemy-shield span').textContent = shieldText;
+    document.querySelector('#enemy-info .enemy-vulnerability span').textContent = vulnText;
+    document.querySelector('#enemy-info .enemy-debuff span').textContent = debuffText;
 }
 
 function updateButtonAvailability() {
@@ -1305,21 +1433,30 @@ function updateButtonAvailability() {
     const attackButton = document.getElementById('attack-button');
 
     if (game.temp.gunCards.length > 0) {
-        // If there are equipped cards, ensure buttons are clickable
-        if(game.data.stowsRemaining > 0) stowButton.classList.remove('unavailable');
-        if(game.data.attacksRemaining > 0) attackButton.classList.remove('unavailable');
+        // Update stow button based on available stows
+        if (game.data.stowsRemaining > 0) {
+            stowButton.classList.remove('unavailable');
+        } else {
+            stowButton.classList.add('unavailable');
+        }
 
-        if (isDebuffActive("attacks_require_stowed_combo") && game.temp.combosStowed === 0) {
+        // If any gun card is disabled, force attack button to be unavailable
+        if (game.temp.gunCards.some(card => card.disabled)) {
             attackButton.classList.add('unavailable');
         } else {
+            // Otherwise, update the attack button based on remaining attacks and debuff conditions
             if (game.data.attacksRemaining > 0) {
                 attackButton.classList.remove('unavailable');
             } else {
                 attackButton.classList.add('unavailable');
             }
+
+            if (isDebuffActive("attacks_require_stowed_combo") && game.temp.combosStowed === 0) {
+                attackButton.classList.add('unavailable');
+            }
         }
     } else {
-        // If there are no equipped cards, disable buttons
+        // If there are no equipped cards, disable both buttons
         stowButton.classList.add('unavailable');
         attackButton.classList.add('unavailable');
     }
@@ -1377,22 +1514,8 @@ export async function stowEquippedCards() {
 
     // re-enable all boosters if debuff is active
     if (isDebuffActive("disable_boosters_until_0_stows") && game.data.stowsRemaining <= 0) {
-        const boosterGroups = [
-            game.slots.bridgeCards,
-            game.slots.engineeringCards,
-            game.slots.armoryCards
-        ];
-        boosterGroups.forEach(group => {
-            group.forEach(booster => {
-                booster.disabled = false;
-                const boosterEl = document.querySelector(`[data-guid="${booster.guid}"]`);
-                if (boosterEl) {
-                    boosterEl.classList.remove("disabled");
-                }
-            });
-        });
+        reenableBoosters();
     }
-
 
     refreshDom();
 
@@ -1502,7 +1625,7 @@ export async function playEquippedCards() {
 
     if (game.temp.currentEnemy.current <= 0) {
         game.temp.currentEnemy.current = 0;
-        endCombat('win');
+        await endCombat('win');
         return;
 	} else if(game.data.attacksRemaining <= 0) {
 
@@ -1512,34 +1635,15 @@ export async function playEquippedCards() {
         const currentCount = stats.data.deaths[systemClassKey] ?? 0;
         stats.data.deaths[systemClassKey] = currentCount + 1;
         saveStats(stats.data);
-
-        if(game.data.lives < 1 || isDebuffActive('time_shifts_disabled')) {
-            endCombat('loss');
-		    return;
-        } else {
-            game.data.lives -= 1;
-            showOverworld(false);
-            return
-        }
+        
+        await endCombat('loss');
+		return;
 		
 	}
 
     // re-enable all boosters if debuff active
     if (isDebuffActive("disable_boosters_until_1_attack") && game.data.attacksRemaining === 1) {
-        const boosterGroups = [
-            game.slots.bridgeCards,
-            game.slots.engineeringCards,
-            game.slots.armoryCards
-        ];
-        boosterGroups.forEach(group => {
-            group.forEach(booster => {
-                booster.disabled = false;
-                const boosterEl = document.querySelector(`[data-guid="${booster.guid}"]`);
-                if (boosterEl) {
-                    boosterEl.classList.remove("disabled");
-                }
-            });
-        });
+        reenableBoosters();
     }
 
     clearAmounts();
@@ -1672,16 +1776,16 @@ async function applyBoosters() {
     let finalQueue = await filterDirectBoosters(initialQueue);
     finalQueue.reverse();
 
-    // Handle the double_retriggers and other multipliers (unchanged)
+    // Handle the double_retriggers and other multipliers if they aren't disabled
     const multiplyBoosters = findBoosters('boosterAction', [
-        'double_retriggers', 
+        'double_retriggers',  
         'double_damage_values', 
         'double_power_values', 
         'double_pierce_values', 
         'double_spread_values', 
         'double_additive',
         'double_multiplicative'
-    ]);
+    ], null, false);
     if (multiplyBoosters.length > 0) {
         for (const multiplyBooster of multiplyBoosters) {
             document.querySelector(`[data-guid="${multiplyBooster.guid}"]`).classList.add("multiply");
@@ -1733,7 +1837,7 @@ async function filterDirectBoosters(initialQueue) {
     }
 
     // Check how many double_retriggers boosters are active
-    const multiplyBoosters = findBoostersWithAction('double_retriggers');
+    const multiplyBoosters = findBoostersWithAction('double_retriggers', false);
     const doubleRetriggersCount = multiplyBoosters.length;
 
     let currentTopLevelBooster = null;
@@ -1865,6 +1969,13 @@ async function processQueue(queue) {
     for (const { booster, triggeredBy } of queue) {
         if (game.config.debug) console.log(`\nProcessing Booster: ${booster.id}`);
 
+        // Check if the booster element exists in the DOM
+        let boosterEl = document.querySelector(`[data-guid="${booster.guid}"]`);
+        if (!boosterEl) {
+            if (game.config.debug) console.log(`Skipping booster ${booster.id} because its element does not exist (it may have been destroyed).`);
+            continue;  // Skip processing for this booster
+        }
+
         // Highlight boosters in the triggeredBy chain if they exist in the DOM
         if (triggeredBy && triggeredBy.length > 0) {
             if (game.config.debug) console.log(` - Triggered By Chain: ${triggeredBy.map(b => b.id).join(' -> ')}`);
@@ -1877,10 +1988,7 @@ async function processQueue(queue) {
         }
 
         // Highlight the booster if its element exists
-        let boosterEl = document.querySelector(`[data-guid="${booster.guid}"]`);
-        if (boosterEl) {
-            boosterEl.classList.add("active");
-        }
+        boosterEl.classList.add("active");
 
         // Process the booster power
         await processBoosterPower(booster);
@@ -1889,13 +1997,11 @@ async function processQueue(queue) {
         booster.timesFired = (booster.timesFired || 0) + 1;
 
         // If the booster element exists, update the "fired" span and remove the "active" class
-        if (boosterEl) {
-            const firedCountSpan = boosterEl.querySelector('.fired .fired-count');
-            if (firedCountSpan) {
-                firedCountSpan.textContent = booster.timesFired;
-            }
-            boosterEl.classList.remove("active");
-        }        
+        const firedCountSpan = boosterEl.querySelector('.fired .fired-count');
+        if (firedCountSpan) {
+            firedCountSpan.textContent = booster.timesFired;
+        }
+        boosterEl.classList.remove("active");      
 
         if (triggeredBy && triggeredBy.length > 0) {
             triggeredBy.forEach(parentBooster => {
@@ -2117,7 +2223,7 @@ async function processBooster(booster, cardElement = false) {
     }
 
     // For additive boosters: if any booster with 'double_additive' is active and this booster is additive.
-    if (findBoosters('boosterAction', 'double_additive').length > 0 && booster.boosterAction !== 'double_additive') {
+    if (findBoosters('boosterAction', 'double_additive', null, false).length > 0 && booster.boosterAction !== 'double_additive') {
         if (!booster.multiplicative) { // Only apply to additive boosters
             boosterDamage *= 2;
             boosterPower *= 2;
@@ -2127,7 +2233,7 @@ async function processBooster(booster, cardElement = false) {
     }
 
     // For multiplicative boosters: if any booster with 'double_multiplicative' is active and this booster is multiplicative.
-    if (findBoosters('boosterAction', 'double_multiplicative').length > 0 && booster.boosterAction !== 'double_multiplicative') {
+    if (findBoosters('boosterAction', 'double_multiplicative', null, false).length > 0 && booster.boosterAction !== 'double_multiplicative') {
         if (booster.multiplicative) { // Only apply to multiplicative boosters
             boosterDamage *= 2;
             boosterPower *= 2;
@@ -2137,16 +2243,16 @@ async function processBooster(booster, cardElement = false) {
     }
 
     // If any booster with the respective boosterAction is active (and the current booster isn't itself that type), double the value.
-    if (findBoosters('boosterAction', 'double_damage_values').length > 0 && booster.boosterAction !== 'double_damage_values') {
+    if (findBoosters('boosterAction', 'double_damage_values', null, false).length > 0 && booster.boosterAction !== 'double_damage_values') {
         boosterDamage *= 2;
     }
-    if (findBoosters('boosterAction', 'double_power_values').length > 0 && booster.boosterAction !== 'double_power_values') {
+    if (findBoosters('boosterAction', 'double_power_values', null, false).length > 0 && booster.boosterAction !== 'double_power_values') {
         boosterPower *= 2;
     }
-    if (findBoosters('boosterAction', 'double_pierce_values').length > 0 && booster.boosterAction !== 'double_pierce_values') {
+    if (findBoosters('boosterAction', 'double_pierce_values', null, false).length > 0 && booster.boosterAction !== 'double_pierce_values') {
         boosterPierce *= 2;
     }
-    if (findBoosters('boosterAction', 'double_spread_values').length > 0 && booster.boosterAction !== 'double_spread_values') {
+    if (findBoosters('boosterAction', 'double_spread_values', null, false).length > 0 && booster.boosterAction !== 'double_spread_values') {
         boosterSpread *= 2;
     }
 
@@ -2191,73 +2297,150 @@ async function processBooster(booster, cardElement = false) {
     // Damage is increasing
     if (damageIncrease > damage) {
         procBooster = true;
-        let amount = formatLargeNumber(damageIncrease);
-        document.querySelector('.number.damage').classList.add("active");
-        document.querySelector('.number.damage').textContent = amount; // Update the damage displayed
-        let previousAmount = parseInt(boosterElement.querySelector('.damage').getAttribute('data-amount').replace(/,/g, ''), 10);
-        let newAmount = multiplicative ? Math.round((boosterDamage * previousAmount) * 100) / 100 : Math.round((boosterDamage + previousAmount) * 100) / 100;
-        boosterElement.querySelector('.damage').textContent = prefix + newAmount;
-        boosterElement.querySelector('.damage').setAttribute('data-amount', formatLargeNumber(newAmount));
+    
+        // Big display
+        const bigDamage = document.querySelector('.number.damage');
+        bigDamage.classList.add("active");
+        bigDamage.textContent = formatLargeNumber(damageIncrease);
+    
+        // Small display
+        const dmgEl = boosterElement.querySelector('.damage');
+        let prev = parseFloat(dmgEl.getAttribute('data-amount').replace(/,/g, ''));
+        prev = prev === 0 && multiplicative ? 1 : prev;
+    
+        const rawDmg = multiplicative
+        ? boosterDamage * prev
+        : boosterDamage + prev;
+    
+        const roundedDmg = Math.round(rawDmg * 10) / 10;
+        const dispDmg    = formatTenth(rawDmg);
+    
+        dmgEl.textContent = prefix + dispDmg;
+        dmgEl.setAttribute('data-amount', formatLargeNumber(roundedDmg));
     }
+    
     // Power is increasing
     if (powerIncrease > power) {
         procBooster = true;
-        let amount = formatLargeNumber(powerIncrease);
-        document.querySelector('.number.power').classList.add("active");
-        document.querySelector('.number.power').textContent = amount; // Update the power displayed
-        let previousAmount = parseInt(boosterElement.querySelector('.power').getAttribute('data-amount').replace(/,/g, ''), 10);
-        let newAmount = multiplicative ? Math.round((boosterPower * previousAmount) * 100) / 100 : Math.round((boosterPower + previousAmount) * 100) / 100;
-        boosterElement.querySelector('.power').textContent = prefix + newAmount;
-        boosterElement.querySelector('.power').setAttribute('data-amount', formatLargeNumber(newAmount));
+    
+        const bigPower = document.querySelector('.number.power');
+        bigPower.classList.add("active");
+        bigPower.textContent = formatLargeNumber(powerIncrease);
+    
+        const pwrEl = boosterElement.querySelector('.power');
+        let prev = parseFloat(pwrEl.getAttribute('data-amount').replace(/,/g, ''));
+        prev = prev === 0 && multiplicative ? 1 : prev;
+    
+        const rawPwr = multiplicative
+        ? boosterPower * prev
+        : boosterPower + prev;
+    
+        const roundedPwr = Math.round(rawPwr * 10) / 10;
+        const dispPwr    = formatTenth(rawPwr);
+    
+        pwrEl.textContent = prefix + dispPwr;
+        pwrEl.setAttribute('data-amount', formatLargeNumber(roundedPwr));
     }
+    
     // Pierce is increasing
     if (pierceIncrease > pierce) {
         procBooster = true;
-        let amount = formatLargeNumber(pierceIncrease);
-        document.querySelector('.number.pierce').classList.add("active");
-        document.querySelector('.number.pierce').textContent = amount; // Update the pierce displayed
-        let previousAmount = parseInt(boosterElement.querySelector('.pierce').getAttribute('data-amount').replace(/,/g, ''), 10);
-        let newAmount = multiplicative ? Math.round((boosterPierce * previousAmount) * 100) / 100 : Math.round((boosterPierce + previousAmount) * 100) / 100;
-        boosterElement.querySelector('.pierce').textContent = prefix + newAmount;
-        boosterElement.querySelector('.pierce').setAttribute('data-amount', formatLargeNumber(newAmount));
+    
+        const bigPierce = document.querySelector('.number.pierce');
+        bigPierce.classList.add("active");
+        bigPierce.textContent = formatLargeNumber(pierceIncrease);
+    
+        const prcEl = boosterElement.querySelector('.pierce');
+        let prev = parseFloat(prcEl.getAttribute('data-amount').replace(/,/g, ''));
+        prev = prev === 0 && multiplicative ? 1 : prev;
+    
+        const rawPrc = multiplicative
+        ? boosterPierce * prev
+        : boosterPierce + prev;
+    
+        const roundedPrc = Math.round(rawPrc * 10) / 10;
+        const dispPrc    = formatTenth(rawPrc);
+    
+        prcEl.textContent = prefix + dispPrc;
+        prcEl.setAttribute('data-amount', formatLargeNumber(roundedPrc));
     }
+    
     // Spread is increasing
     if (spreadIncrease > spread) {
         procBooster = true;
-        let amount = formatLargeNumber(spreadIncrease);
-        document.querySelector('.number.spread').classList.add("active");
-        document.querySelector('.number.spread').textContent = amount; // Update the spread displayed
+    
+        const bigSpread = document.querySelector('.number.spread');
+        bigSpread.classList.add("active");
+        bigSpread.textContent = formatLargeNumber(spreadIncrease);
+    
         game.data.spread = spreadIncrease;
-        let previousAmount = parseInt(boosterElement.querySelector('.spread').getAttribute('data-amount').replace(/,/g, ''), 10);
-        let newAmount = multiplicative ? Math.round((boosterSpread * previousAmount) * 100) / 100 : Math.round((boosterSpread + previousAmount) * 100) / 100;
-        boosterElement.querySelector('.spread').textContent = prefix + newAmount;
-        boosterElement.querySelector('.spread').setAttribute('data-amount', formatLargeNumber(newAmount));
+    
+        const spdEl = boosterElement.querySelector('.spread');
+        let prev = parseFloat(spdEl.getAttribute('data-amount').replace(/,/g, ''));
+        prev = prev === 0 && multiplicative ? 1 : prev;
+    
+        const rawSpd = multiplicative
+        ? boosterSpread * prev
+        : boosterSpread + prev;
+    
+        const roundedSpd = Math.round(rawSpd * 10) / 10;
+        const dispSpd    = formatTenth(rawSpd);
+    
+        spdEl.textContent = prefix + dispSpd;
+        spdEl.setAttribute('data-amount', formatLargeNumber(roundedSpd));
     }
+    
     // Credits are increasing
     if (creditsIncrease > credits) {
         procBooster = true;
-        let amount = formatLargeNumber(creditsIncrease);
-        document.querySelector('.stats .credits span').classList.add("active");
-        document.querySelector('.stats .credits span').textContent = amount; // Update the credits displayed
+    
+        const bigCred = document.querySelector('.stats .credits span');
+        bigCred.classList.add("active");
+        bigCred.textContent = formatLargeNumber(creditsIncrease);
+    
         game.data.credits = creditsIncrease;
-        let previousAmount = parseInt(boosterElement.querySelector('.credits').getAttribute('data-amount').replace(/,/g, ''), 10);
-        let newAmount = multiplicative ? Math.round((boosterCredits * previousAmount) * 100) / 100 : Math.round((boosterCredits + previousAmount) * 100) / 100;
-        boosterElement.querySelector('.credits').textContent = prefix + newAmount;
-        boosterElement.querySelector('.credits').setAttribute('data-amount', formatLargeNumber(newAmount));
+    
+        const crdEl = boosterElement.querySelector('.credits');
+        let prev = parseFloat(crdEl.getAttribute('data-amount').replace(/,/g, ''));
+        prev = prev === 0 && multiplicative ? 1 : prev;
+    
+        const rawCrd = multiplicative
+        ? boosterCredits * prev
+        : boosterCredits + prev;
+    
+        const roundedCrd = Math.round(rawCrd * 10) / 10;
+        const dispCrd    = formatTenth(rawCrd);
+    
+        crdEl.textContent = prefix + dispCrd;
+        crdEl.setAttribute('data-amount', formatLargeNumber(roundedCrd));
     }
+    
     // XP is increasing
     if (xpIncrease > xp) {
         procBooster = true;
-        let amount = formatLargeNumber(xpIncrease);
-        document.querySelector('.stats .xp span').classList.add("active");
-        document.querySelector('.stats .xp span').textContent = amount; // Update the XP displayed
+    
+        const bigXp = document.querySelector('.stats .xp span');
+        bigXp.classList.add("active");
+        bigXp.textContent = formatLargeNumber(xpIncrease);
+    
         game.data.xp = xpIncrease;
-        let previousAmount = parseInt(boosterElement.querySelector('.xp').getAttribute('data-amount').replace(/,/g, ''), 10);
-        let newAmount = multiplicative ? Math.round((boosterXP * previousAmount) * 100) / 100 : Math.round((boosterXP + previousAmount) * 100) / 100;
-        boosterElement.querySelector('.xp').textContent = prefix + newAmount;
-        boosterElement.querySelector('.xp').setAttribute('data-amount', formatLargeNumber(newAmount));
+    
+        const xpEl = boosterElement.querySelector('.xp');
+        let prev = parseFloat(xpEl.getAttribute('data-amount').replace(/,/g, ''));
+        prev = prev === 0 && multiplicative ? 1 : prev;
+    
+        const rawXp = multiplicative
+        ? boosterXP * prev
+        : boosterXP + prev;
+    
+        const roundedXp = Math.round(rawXp * 10) / 10;
+        const dispXp    = formatTenth(rawXp);
+    
+        xpEl.textContent = prefix + dispXp;
+        xpEl.setAttribute('data-amount', formatLargeNumber(roundedXp));
+    
         checkLevel();
-    }
+    }  
 
     if (procBooster) {
         boosterElement.classList.add("active");
@@ -2450,17 +2633,17 @@ async function boosterAction(booster, cardElement = false) {
             }));            
             const [selectedProperty] = weightedSelect(gameDataProperties, 1);
             const randomGameDataProperty = selectedProperty.name;
-            game.data[randomGameDataProperty] += 1;
             const propertyToClassMap = {
-                foilPower: 'foil',
-                holoPower: 'holo',
-                sleevePower: 'sleeve',
-                goldCredits: 'gold-leaf',
-                textureLevels: 'texture'
+                foil: 'foilPower',
+                holo: 'holoPower',
+                sleeve: 'sleevePower',
+                gold_credits: 'goldCredits',
+                texture: 'textureLevels'
             };
             const statClass = propertyToClassMap[randomGameDataProperty];
             const statElement = document.querySelector(`.stats .${statClass} .total`);
-            statElement.textContent = (game.data[randomGameDataProperty] * game.data.specialMultiplier);
+            game.data[propertyToClassMap[randomGameDataProperty]] += 1;
+            statElement.textContent = (game.data[propertyToClassMap[randomGameDataProperty]] * game.data.specialMultiplier);
             statElement.classList.add("active");
             if (cardElement) cardElement.classList.add("active");
             await new Promise(resolve => setTimeout(resolve, game.config.cardDelay)); 
@@ -2718,25 +2901,7 @@ async function boosterAction(booster, cardElement = false) {
                 console.error("Common booster element not found for destroy_random_common:", selectedCommon.guid);
             }
             break;
-        }
-        case 'upgrade_cards': {
-            const guid = cardElement.getAttribute("data-guid");
-            const cardObj = game.temp.gunCards.find(card => card.guid === guid);
-            if (cardObj) {
-                const levelIncrement = (booster.levels !== undefined ? booster.levels : 1);
-                updateCardLevel(cardObj, levelIncrement, cardElement);
-                const boosterEl = document.querySelector(`[data-guid="${booster.guid}"]`);
-                if (boosterEl) {
-                    boosterEl.classList.add("active");
-                }
-                cardElement.classList.add("upgraded");
-                await new Promise(resolve => setTimeout(resolve, game.config.cardDelay));
-                cardElement.classList.remove("upgraded");
-            } else {
-                console.log('Could not find card object for guid:', guid);
-            }
-            break;
-        }        
+        }     
     }
 }
 
@@ -3055,13 +3220,27 @@ function isCardAffectedByBooster(booster, card) {
 /**
  * Finds boosters by boosterAction, or returns false if no boosters with the specified action are equipped.
  * @param {string} action - The boosterAction to search for.
+ * @param {boolean} [includeDisabled=true] - Whether to include boosters that are disabled (booster.disabled === true).
  * @returns {Array|boolean} An array of boosters with the specified action or false if none found.
  */
-function findBoostersWithAction(action) {
-    const allBoosters = [...game.slots.bridgeCards, ...game.slots.engineeringCards, ...game.slots.armoryCards];
-    const boostersWithAction = allBoosters.filter(booster => booster.boosterAction === action);
+function findBoostersWithAction(action, includeDisabled = true) {
+    // Combine all booster arrays into one list
+    const allBoosters = [
+        ...game.slots.bridgeCards,
+        ...game.slots.engineeringCards,
+        ...game.slots.armoryCards
+    ];
 
-    return boostersWithAction.length > 0 ? boostersWithAction : false;
+    // Filter by action
+    let results = allBoosters.filter(booster => booster.boosterAction === action);
+
+    // Optionally exclude disabled boosters
+    if (!includeDisabled) {
+        results = results.filter(booster => !booster.disabled);
+    }
+
+    // Return array if any, or false if none
+    return results.length > 0 ? results : false;
 }
 
 function isSpectrum() {
@@ -3117,24 +3296,30 @@ function isChargedChromaticArmament(cards) {
 }
 
 function isVulnerable(card, enemy) {
-    const vulnerabilities = enemy.vulnerability 
-        ? (Array.isArray(enemy.vulnerability) ? enemy.vulnerability : [enemy.vulnerability])
+    // Pull the vulnerability from the temp store instead of enemy.vulnerability
+    const raw = game.temp.currentVulnerability?.[enemy.id];
+    const vulnerabilities = raw
+        ? (Array.isArray(raw) ? raw : [raw])
         : [];
+
     return vulnerabilities.some(vulnerability => {
-        return card.color === vulnerability || 
-               card.type === vulnerability ||
+        return card.color === vulnerability ||
+               card.type  === vulnerability ||
                (vulnerability === 'warm' && WARM_COLORS.includes(card.color)) ||
                (vulnerability === 'cool' && COOL_COLORS.includes(card.color));
     });
 }
 
 function isShielded(card, enemy) {
-    const shields = enemy.shield 
-        ? (Array.isArray(enemy.shield) ? enemy.shield : [enemy.shield])
+    // Pull the shield from the temp store instead of enemy.shield
+    const raw = game.temp.currentShield?.[enemy.id];
+    const shields = raw
+        ? (Array.isArray(raw) ? raw : [raw])
         : [];
+
     return shields.some(shield => {
-        return card.color === shield || 
-               card.type === shield ||
+        return card.color === shield ||
+               card.type  === shield ||
                (shield === 'warm' && WARM_COLORS.includes(card.color)) ||
                (shield === 'cool' && COOL_COLORS.includes(card.color));
     });
@@ -3159,18 +3344,18 @@ function scoringCombo(typeCounts, colorCounts, maxColorTypeCount) {
         if (maxColorTypeCount === 5 && allSameType) {
             possiblecombos.push({ type: "fullChromaticArmament", baseDamage: game.comboTypeLevels["fullChromaticArmament"].baseDamage });
         }
-        if (maxColorTypeCount === 2 && totalCards >= 2) {
+        /*if (maxColorTypeCount === 2 && totalCards >= 2) {
             possiblecombos.push({ type: "biChromaticArmament", baseDamage: game.comboTypeLevels["biChromaticArmament"].baseDamage });
-        }
+        }*/
         if (maxColorTypeCount === 3 && totalCards >= 3) {
             possiblecombos.push({ type: "triChromaticArmament", baseDamage: game.comboTypeLevels["triChromaticArmament"].baseDamage });
         }
         if (maxColorTypeCount === 4 && totalCards >= 4) {
             possiblecombos.push({ type: "quadChromaticArmament", baseDamage: game.comboTypeLevels["quadChromaticArmament"].baseDamage });
         } 
-        if (maxColorCount === 2 && totalCards >= 2) {
+        /*if (maxColorCount === 2 && totalCards >= 2) {
             possiblecombos.push({ type: "biChromatic", baseDamage: game.comboTypeLevels["biChromatic"].baseDamage });
-        }
+        }*/
         if (maxColorCount === 3 && totalCards >= 3) {
             possiblecombos.push({ type: "triChromatic", baseDamage: game.comboTypeLevels["triChromatic"].baseDamage });
         } 
@@ -3180,9 +3365,9 @@ function scoringCombo(typeCounts, colorCounts, maxColorTypeCount) {
         if (maxColorCount === 5 && allSameColor) {
             possiblecombos.push({ type: "fullChromatic", baseDamage: game.comboTypeLevels["fullChromatic"].baseDamage });
         } 
-        if (maxTypeCount === 2 && totalCards >= 2) {
+        /*if (maxTypeCount === 2 && totalCards >= 2) {
             possiblecombos.push({ type: "biArmament", baseDamage: game.comboTypeLevels["biArmament"].baseDamage });
-        }
+        }*/
         if (maxTypeCount === 3 && totalCards >= 3) {
             possiblecombos.push({ type: "triArmament", baseDamage: game.comboTypeLevels["triArmament"].baseDamage });
         } 
@@ -3207,33 +3392,44 @@ function scoringCombo(typeCounts, colorCounts, maxColorTypeCount) {
     }
 
 	// Loop over possiblecombos to calculate the damage for each combo, and select the highest scoring one
-	let highestScoringCombo = possiblecombos.reduce((highest, combo) => {
+    let highestScoringCombo = possiblecombos.reduce((highest, combo) => {
         let adjustedBaseDamage = combo.baseDamage;
         let handlevel = game.comboTypeLevels[combo.type].level;
 
-        // Normalize shield and vulnerability to arrays for case-insensitive comparison
-        const shields = [].concat(game.temp.currentEnemy.shield || []).map(s => s.toLowerCase());
-        const vulnerabilities = [].concat(game.temp.currentEnemy.vulnerability || []).map(v => v.toLowerCase());
+        // Pull shield and vulnerability from game.temp stores
+        const rawShields = game.temp.currentShield[game.temp.currentEnemy.id];
+        const shields = rawShields
+            ? (Array.isArray(rawShields) ? rawShields : [rawShields])
+            : [];
+        const shieldsLower = shields.map(s => s.toLowerCase());
+
+        const rawVulns = game.temp.currentVulnerability[game.temp.currentEnemy.id];
+        const vulnerabilities = rawVulns
+            ? (Array.isArray(rawVulns) ? rawVulns : [rawVulns])
+            : [];
+        const vulnerabilitiesLower = vulnerabilities.map(v => v.toLowerCase());
 
         const comboTypeLower = combo.type.toLowerCase();
 
-        // Check for shield or vulnerability against the combo type (case-insensitive)
-        const iscomboShielded = shields.some(shield => comboTypeLower.includes(shield));
-        const iscomboVulnerable = vulnerabilities.some(vulnerability => comboTypeLower.includes(vulnerability));
+        // Check for shield or vulnerability against the combo type
+        const isComboShielded    = shieldsLower.some(shield => comboTypeLower.includes(shield));
+        const isComboVulnerable  = vulnerabilitiesLower.some(vul => comboTypeLower.includes(vul));
 
-        // Adjust for shield (debuff combo level or damage)
-        if (iscomboShielded) {
-            handlevel = 1; // Apply shield effect
+        // Adjust for shield (sets combo level to 1)
+        if (isComboShielded) {
+            handlevel = 1;
         }
 
-        // Adjust for vulnerability (increase damage or combo level)
-        if (iscomboVulnerable) {
-            adjustedBaseDamage *= 2; // Apply vulnerability effect
+        // Adjust for vulnerability (double base damage)
+        if (isComboVulnerable) {
+            adjustedBaseDamage *= 2;
         }
 
-        let totalDamage = adjustedBaseDamage * handlevel;
-        return totalDamage > highest.totalDamage ? { type: combo.type, totalDamage } : highest;
-	}, { type: "", totalDamage: 0 });
+        const totalDamage = adjustedBaseDamage * handlevel;
+        return totalDamage > highest.totalDamage
+            ? { type: combo.type, totalDamage }
+            : highest;
+    }, { type: "", totalDamage: 0 });
 
     // Now clear game.temp.scoringCards and only add cards contributing to the highest scoring combo
     game.temp.scoringCards = [];
@@ -3260,13 +3456,13 @@ function updatePreviews() {
         game.temp.persistentDamage = 0;
     }
     if (!game.temp.persistentPower || game.temp.persistentPower === 0) {
-        game.temp.persistentPower = 1; // Base persistent power from boosters or drawn cards
+        game.temp.persistentPower = 0; // Base persistent power from boosters or drawn cards
     }
     if (!game.temp.persistentPierce || game.temp.persistentPierce === 0) {
         game.temp.persistentPierce = 1;
     }
     if (!game.temp.persistentSpread || game.temp.persistentSpread === 0) {
-        game.temp.persistentSpread = 1; // Base persistent power from boosters or drawn cards
+        game.temp.persistentSpread = 1;
     }
 
     // Initialize dynamic power to be recalculated based on equipped cards
@@ -3305,8 +3501,14 @@ function updatePreviews() {
     
     // Loop through a second time to multiply dynamic power based on holo cards
     game.temp.gunCards.forEach(card => {
+        // Check if booster is active that causes card levels to affect power
+        if(findBoosters('boosterAction', 'card_levels_multiply_power').length > 0) {
+            game.temp.dynamicPower *= isShielded(card, game.temp.currentEnemy) || isDebuffActive('card_levels_nerfed') ? 1 : card.level;;
+        }
+
         let holo = getHolo(card);
         game.temp.dynamicPower *= holo;
+
         updateCardPower(card, 'guns');
     });
 
@@ -3340,8 +3542,13 @@ function updatePreviews() {
         game.temp.dynamicPower = 1;
     }
 
+    // Check if booster is active that causes combo levels to affect power
+    if(findBoosters('boosterAction', 'combo_levels_multiply_power').length > 0) {
+        game.temp.dynamicPower += bonusDamage;
+    }
+
     // Combine persistentPower (booster effects) and dynamicPower (from cards and spectrum power)
-    let totalPower = Math.round(game.temp.persistentPower * game.temp.dynamicPower);
+    let totalPower = Math.round(game.temp.persistentPower + game.temp.dynamicPower);
 
     //let comboTypeLevel = comboType ? ' ' + numberToRoman(game.comboTypeLevels[comboType].level) : '';
     let comboTypeLevel = comboType ? ' ' + game.comboTypeLevels[comboType].level : '';
@@ -3361,7 +3568,7 @@ function updatePreviews() {
     document.querySelector('.combo-name .combo-damage').textContent = formatLargeNumber(bonusDamageDisplay);
     document.querySelector('.combo-name .combo-played').textContent = comboType ? "(Played " + comboTypePlayed + " times)" : '';
     document.querySelector('.total-damage').textContent = formatLargeNumber(Math.round(finalDamage));
-    document.querySelector('.gauge-power').textContent = formatLargeNumber(spectrumBonusPowerDisplay);
+    document.querySelector('.gauge-power').textContent = `+${formatLargeNumber(spectrumBonusPowerDisplay)}`;
 
     // Update the temporary game state with the recalculated values
     game.temp.damage = totalDamage;
@@ -3372,49 +3579,80 @@ function updatePreviews() {
 
 function getHolo(card) {
     let level = isDebuffActive('card_levels_nerfed') ? 1 : card.level;
-    return card.holo ? ((game.data.holoPower * game.data.specialMultiplier) + (level - 1)) : 1;
+    return (card.holo && !isShielded(card, game.temp.currentEnemy)) ? ((game.data.holoPower * game.data.specialMultiplier) + (level - 1)) : 1;
 }
 function getFoil(card) {
     let level = isDebuffActive('card_levels_nerfed') ? 1 : card.level;
-    return card.foil ? ((game.data.foilPower * game.data.specialMultiplier) + (level - 1)) : 1;
+    return (card.foil && !isShielded(card, game.temp.currentEnemy)) ? ((game.data.foilPower * game.data.specialMultiplier) + (level - 1)) : 1;
 }
 function getSleeve(card) {
     let level = isDebuffActive('card_levels_nerfed') ? 1 : card.level;
-    return card.sleeve ? ((game.data.sleevePower * game.data.specialMultiplier) + (level - 1)) : 1;
+    return (card.sleeve && !isShielded(card, game.temp.currentEnemy)) ? ((game.data.sleevePower * game.data.specialMultiplier) + (level - 1)) : 1;
 }
 function getGoldLeaf(card) {
     let level = isDebuffActive('card_levels_nerfed') ? 1 : card.level;
-    return card.gold_leaf ? Math.round(((game.data.goldCredits * game.data.creditsMultiplier) + (level - 1)) * game.data.specialMultiplier) : 0;
+    return (card.gold_leaf && !isShielded(card, game.temp.currentEnemy)) ? Math.round(((game.data.goldCredits * game.data.creditsMultiplier) + (level - 1)) * game.data.specialMultiplier) : 0;
 }
 function getTexture(card) {
-    return card.texture ? Math.round(game.data.textureLevels * game.data.specialMultiplier) : 0;
+    return (card.texture && !isShielded(card, game.temp.currentEnemy)) ? Math.round(game.data.textureLevels * game.data.specialMultiplier) : 0;
 }
 function updateCardDamage(card, cardDamage) {
     // Update the damage span in the card element
-    const cardElement = document.querySelector(`#guns .card[data-guid="${card.guid}"]`);
+    const cardElement = document.querySelector(
+      `#guns .card[data-guid="${card.guid}"]`
+    );
     if (cardElement) {
         const damageSpan = cardElement.querySelector('.damage');
-        const damageDisplay = "+" + cardDamage;
+        // use formatTenth to drop “.0” when it’s whole, or show one decimal otherwise
+        const damageDisplay = '+' + formatTenth(cardDamage);
         damageSpan.textContent = damageDisplay;
     }
 }
 function updateCardPower(card, context = 'hand') {
-    let foil = getFoil(card);
-    let holo = getHolo(card);
-    let sleeve = getSleeve(card);
-    // Update the power span in the card element
-    // if card is equipped (in #guns) foil and holo are both aded
-    let cardElementEquipped = document.querySelector(`#guns .card[data-guid="${card.guid}"]`);
-    if(context == 'hand') {
-        cardElementEquipped = document.querySelector(`#cards .card[data-guid="${card.guid}"]`);
+    let foil    = getFoil(card);
+    let holo    = getHolo(card);
+    let sleeve  = getSleeve(card);
+    let levels  = findBoosters('boosterAction', 'card_levels_multiply_power').length > 0
+      ? card.level
+      : 1;
+
+    // pick the right card element
+    let cardElementEquipped = document.querySelector(
+      `#guns .card[data-guid="${card.guid}"]`
+    );
+    if (context === 'hand') {
+        cardElementEquipped = document.querySelector(
+          `#cards .card[data-guid="${card.guid}"]`
+        );
     }
+
     if (cardElementEquipped) {
-        let powerDisplay = foil > 1 ? "x" + foil : '';
-        if(context=='guns') {
-            powerDisplay = holo > 1 ? "x" + (holo * foil) : foil > 1 ? "x" + foil : '';
-        } else if(context=='sleeve') {
-            powerDisplay = sleeve > 1 ? "x" + (sleeve * foil) : foil > 1 ? "x" + foil : '';
+        // default for “hand” or fallback
+        let powerDisplay = foil > 1
+          ? 'x' + formatTenth(foil)
+          : '';
+
+        if (context === 'guns') {
+            if (holo > 1) {
+                powerDisplay = 'x' + formatTenth((holo * foil) + levels);
+            } else if (foil > 1) {
+                powerDisplay = 'x' + formatTenth(foil + levels);
+            } else if (levels > 1) {
+                powerDisplay = 'x' + formatTenth(levels);
+            } else {
+                powerDisplay = '';
+            }
+        } 
+        else if (context === 'sleeve') {
+            if (sleeve > 1) {
+                powerDisplay = 'x' + formatTenth(sleeve * foil);
+            } else if (foil > 1) {
+                powerDisplay = 'x' + formatTenth(foil);
+            } else {
+                powerDisplay = '';
+            }
         }
+
         const powerSpan = cardElementEquipped.querySelector('.power');
         powerSpan.textContent = powerDisplay;
     }
@@ -3604,17 +3842,44 @@ export async function endCombat(result) {
             if (stats.data.total_runs > 1) {
                 flourish("New high system level!");
             }
+
+            // check for rank increase
+            // this happens before we increase the floor, so system 8.5 should be considered 9.1
+            if (game.data.system >= 8 && game.data.class === 5) {
+                const newRank = game.data.system - 7;
+                if (newRank > stats.data.rank) {
+                    stats.data.rank = newRank;
+                    saveStats(stats.data);
+                    // grab the name & description from your RANKS object array
+                    const { name, description } = RANKS[newRank];
+                    flourish(`New rank achieved: ${name} (${description})`);
+                }
+            }
         }
     } else {
-        document.querySelector('#end-game').classList.add('shown');
-        // reset the win streak if this wasn't considered a win (it's arbitrary at this point)
-        if (game.data.system < 10) {
-            stats.data.highest_win_streak = 0;
+        if(game.data.lives > 0 && !isDebuffActive('time_shifts_disabled')) {
+            game.data.lives -= 1;
+            showOverworld(false);
+        } else {
+            document.querySelector('#end-game').classList.add('shown');
+            // reset the win streak if this wasn't considered a win (it's arbitrary at this point)
+            if (game.data.system < 10) {
+                stats.data.highest_win_streak = 0;
+            }
         }
     }
     
-    // Reset disabled status for all of the player's boosters.
-    const boosterGroups = [game.slots.bridgeCards, game.slots.engineeringCards, game.slots.armoryCards];
+    await reenableBoosters();
+    await reenableInjectors();
+    
+}
+
+async function reenableBoosters() {
+    const boosterGroups = [
+        game.slots.bridgeCards,
+        game.slots.engineeringCards,
+        game.slots.armoryCards
+    ];
     boosterGroups.forEach(group => {
         group.forEach(booster => {
             booster.disabled = false;
@@ -3624,14 +3889,14 @@ export async function endCombat(result) {
             }
         });
     });
-
+}
+async function reenableInjectors() {
     // Re-enable injector cards that were disabled by debuffs.
     const injectorCards = document.querySelectorAll('.injector.card');
     injectorCards.forEach(card => {
         card.classList.remove("disabled");
         card.style.pointerEvents = 'auto'; // Or remove the inline style if preferred
     });
-    
 }
 
 export async function checkLevel() {
@@ -3659,7 +3924,8 @@ export async function checkLevel() {
         game.data.level = newLevel;
         await new Promise(resolve => setTimeout(resolve, game.config.cardDelay)); 
         document.querySelector('.stats .level span').classList.remove('active');
-        game.temp.shopLevelUp = true;
+        game.temp.slotsAvailable++;
+        saveGameState(game);
         populateShopLevelUp();
         updateXPBar();
 
@@ -3779,6 +4045,7 @@ export function populateStatsModal() {
         // Normal stat: just show "key: value"
         const row = document.createElement('div');
         row.textContent = `${prettyName(key)}: ${value}`;
+        if(key === 'rank') row.textContent += ` (${RANKS[value].name})`;
         statsContainer.appendChild(row);
       }
     }
@@ -3793,65 +4060,75 @@ function organizeArsenal() {
 	return organizedArsenal;
 }
 
-function populateShopSystemHearts() {
+export function populateShopSystemHearts() {
     if (game.systemHearts.length === 0) {
         console.log("No system hearts available for this system.");
         return;
     }
 
-    // Randomly select a system heart
-    const randomIndex = Math.floor(randDecimal() * game.systemHearts.length);
-    const systemHeart = game.systemHearts[randomIndex];
+    const playerRank = stats.data.rank;
 
-    // Append the system heart to the shop
-    const shopSystemHeart = document.querySelector('#shop .system-heart-slot');
-    shopSystemHeart.innerHTML = ''; // Clear previous system heart
+    // 1) filter out any heart locked by rank
+    const availableHearts = game.systemHearts.filter(heart =>
+        // include if no rank requirement, or requirement ≤ playerRank
+        heart.rank == null || heart.rank <= playerRank
+    );
+
+    if (availableHearts.length === 0) {
+        console.log("No system hearts are unlocked at your rank.");
+        return;
+    }
+
+    // 2) pick one at random from the filtered list
+    const randomIndex  = Math.floor(randDecimal() * availableHearts.length);
+    const systemHeart  = availableHearts[randomIndex];
+
+    // 3) render exactly as before
+    const shopSlot = document.querySelector('#shop .system-heart-slot');
+    shopSlot.innerHTML = '';
 
     const cardElement = document.createElement('div');
     cardElement.className = 'card system-heart';
     cardElement.textContent = systemHeart.name;
-    cardElement.dataset.id = systemHeart.id;
+    cardElement.dataset.id   = systemHeart.id;
     cardElement.dataset.cost = game.data.systemHeartCost;
 
-    // Cost span
-    let cardCost = document.createElement('span');
-    cardCost.textContent = game.data.systemHeartCost + ' Credits';
-    cardElement.appendChild(cardCost);
+    // cost span
+    const costSpan = document.createElement('span');
+    costSpan.textContent = game.data.systemHeartCost + ' Credits';
+    cardElement.appendChild(costSpan);
 
-    // Label span
-    let cardLabel = document.createElement('span');
-    cardLabel.textContent = 'SYSTEM HEART';
-    cardElement.appendChild(cardLabel);
+    // label span
+    const labelSpan = document.createElement('span');
+    labelSpan.textContent = 'SYSTEM HEART';
+    cardElement.appendChild(labelSpan);
 
-    // ----------------------------
-    // ADD "DISCOVERED" OR "UNDISCOVERED"
-    // ----------------------------
+    // discovered/undiscovered
     const discoveredSpan = document.createElement('span');
     discoveredSpan.classList.add('discovered-status');
-    if (stats.data.discovered.system_hearts.includes(systemHeart.id)) {
-        discoveredSpan.textContent = 'Discovered';
-    } else {
-        discoveredSpan.textContent = 'Undiscovered';
-    }
+    discoveredSpan.textContent = stats.data.discovered.system_hearts.includes(systemHeart.id)
+        ? 'Discovered'
+        : 'Undiscovered';
     cardElement.appendChild(discoveredSpan);
 
-    // Tooltip
+    // tooltip
     cardElement.setAttribute('data-tippy-content', systemHeart.description);
-    const tooltip = tippy(cardElement, { allowHTML: true });
-    cardElement._tippyInstance = tooltip;
+    const tip = tippy(cardElement, { allowHTML: true });
+    cardElement._tippyInstance = tip;
 
-    shopSystemHeart.appendChild(cardElement);
+    shopSlot.appendChild(cardElement);
 
-    // Event listener for purchasing the system heart
+    // purchase handler
     cardElement.addEventListener('click', function() {
-        let cost = parseInt(this.dataset.cost.replace(/,/g, ''), 10);
+        const cost = parseInt(this.dataset.cost.replace(/,/g, ''), 10);
         if (game.data.credits >= cost) {
-            game.data.credits -= cost; // Subtract cost from player's credits
+            game.data.credits -= cost;
             applySystemHeart(systemHeart);
-            // Remove it from available system hearts
-            game.systemHearts = game.systemHearts.filter(card => card.id !== systemHeart.id);
-            // Clear from shop
-            shopSystemHeart.innerHTML = '';
+            // remove from the master list so it can't reappear
+            game.systemHearts = game.systemHearts.filter(h => h.id !== systemHeart.id);
+            shopSlot.innerHTML = '';
+            // set the temp value to false
+            game.temp.systemHeartAvailable = false;
         } else {
             message("You cannot afford this system heart.");
         }
@@ -3982,54 +4259,60 @@ function determinePackSize(packSizeChances) {
 
 function populateShopPacks() {
     const packsContainer = document.querySelector('#shop .packs');
-
-    // Get the number of packs currently displayed in the shop
     const currentPackCount = packsContainer.children.length;
+    let packsToAdd = Math.max(game.slots.shopPackSlots - currentPackCount, 0);
 
-    // Calculate how many new packs to add
-    let packsToAdd = game.slots.shopPackSlots - currentPackCount;
+    const playerRank = stats.data.rank;
 
-    // Ensure that we do not attempt to add negative or zero packs
-    packsToAdd = Math.max(packsToAdd, 0);
+    // 1) filter PACK_TYPES by availability based on rank
+    const availablePacks = PACK_TYPES.filter(pack => {
+        //if (pack.name === "Supernova Pack" && playerRank <= 0) return false;
+        if (pack.name === "Stardust Pack"  && playerRank <= 1) return false;
+        return true; // all others allowed
+    });
 
-    // Select packs based on weighted random selection
-    let selectedPacks = weightedSelect(PACK_TYPES.map(pack => ({
+    // 2) do weighted select from those
+    const weightedPool = availablePacks.map(pack => ({
         ...pack,
-        weight: pack.weight // Ensure we use the pack's weight property
-    })), packsToAdd);
+        weight: pack.weight ?? 1
+    }));
+    let selectedPacks = weightedSelect(weightedPool, packsToAdd);
 
+    // 3) render each pack just like before
     selectedPacks.forEach(pack => {
         let size = determinePackSize(game.data.packSizeChances);
-        let cost = pack.cost;
-        cost += size === 'big' ? 2 : size === 'giant' ? 4 : 0;
+        let cost = pack.cost + (size === 'big' ? 2 : size === 'giant' ? 4 : 0);
 
-        // Randomly assign cardType or cardColor if it's an Armament Pack or Chromatic Pack
-        if (pack.name === "Armament Pack") {
-            pack.cardType = randFromArray(CARD_TYPES, 1);
+        // special per‑pack tweaks
+        if (pack.name === "Armament Pack") pack.cardType  = randFromArray(CARD_TYPES, 1);
+        if (pack.name === "Chromatic Pack") pack.cardColor = randFromArray(RAINBOW_ORDER, 1);
+
+        const el = document.createElement('div');
+        el.className = 'pack ' + size;
+        el.dataset.packType = pack.name.replace(/\s+/g, '').toLowerCase();
+        el.dataset.packSize = size;
+        el.dataset.cost = cost;
+        if (pack.cardType)  el.dataset.cardType  = pack.cardType;
+        if (pack.cardColor) el.dataset.cardColor = pack.cardColor;
+
+        // display name
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = capitalize(size) + ' ';
+        if (pack.cardType) {
+            nameSpan.textContent += 'Armament ' + prettyName(pack.cardType[0]);
+        } else if (pack.cardColor) {
+            nameSpan.textContent += 'Chromatic ' + capitalize(pack.cardColor[0]);
+        } else {
+            nameSpan.textContent += pack.name;
         }
-        if (pack.name === "Chromatic Pack") {
-            pack.cardColor = randFromArray(RAINBOW_ORDER, 1);
-        }
+        el.appendChild(nameSpan);
 
-        let packElement = document.createElement('div');
-        packElement.className = 'pack ' + size;
-        packElement.dataset.packType = pack.name.replace(/\s+/g, '').toLowerCase();
-        packElement.dataset.packSize = size;
-        packElement.dataset.cost = cost;
-        if (pack.cardType) packElement.dataset.cardType = pack.cardType; // Store type if it's an Armament Pack
-        if (pack.cardColor) packElement.dataset.cardColor = pack.cardColor; // Store color if it's a Chromatic Pack
+        // cost span
+        const costSpan = document.createElement('span');
+        costSpan.textContent = cost + ' Credits';
+        el.appendChild(costSpan);
 
-        let packName = document.createElement('span');
-        packName.textContent = capitalize(size) + ' ';
-        packName.textContent += pack.cardType ? 'Armament ' + prettyName(pack.cardType[0]) : pack.cardColor ? 'Chromatic ' + capitalize(pack.cardColor[0]) : pack.name;
-        packElement.setAttribute('data-cost', cost);
-        packElement.appendChild(packName);
-
-        let packCost = document.createElement('span');
-        packCost.textContent = cost + ' Credits';
-        packElement.appendChild(packCost);
-
-        // Calculate the pool and choose amounts based on the pack type and size
+        // pool/choose logic
         let poolAmount, chooseAmount;
         switch (pack.name) {
             case "Galactic Pack":
@@ -4037,72 +4320,76 @@ function populateShopPacks() {
                 chooseAmount = size === 'standard' ? 1 : size === 'big' ? 2 : 4;
                 break;
             case "Nebula Pack":
-                poolAmount = size === 'standard' ? 10 : size === 'big' ? 14 : 17;
+                poolAmount = size === 'standard' ? 9 : size === 'big' ? 11 : 14;
                 chooseAmount = size === 'standard' ? 1 : size === 'big' ? 2 : 4;
                 break;
             case "Stardust Pack":
             case "Supernova Pack":
             case "Special Pack":
             case "Comet Pack":
-                poolAmount = size === 'standard' ? 3 : size === 'big' ? 4 : 5;
+                poolAmount   = size === 'standard' ? 3 : size === 'big' ? 4 : 5;
                 chooseAmount = 1;
                 break;
             case "Armament Pack":
             case "Chromatic Pack":
                 chooseAmount = size === 'standard' ? 1 : size === 'big' ? 2 : 3;
-                poolAmount = size === 'standard' ? 1 : size === 'big' ? 2 : 3;
+                poolAmount   = chooseAmount;
                 break;
             case "Cosmos Pack":
-                poolAmount = size === 'standard' ? 15 : size === 'big' ? 25 : 35;
+                poolAmount   = size === 'standard' ? 15 : size === 'big' ? 25 : 35;
                 chooseAmount = 1;
                 break;
             default:
-                poolAmount = 1;
-                chooseAmount = 1; // Default amount if not specified
+                poolAmount = chooseAmount = 1;
         }
 
-        // Adjust the "choose" and "pool" spans in the description based on the amounts
-        let adjustedDescription = pack.description
-            .replace(/<span class='choose'>\d+<\/span>/g, `<span class='choose'>${chooseAmount}</span>`)
-            .replace(/<span class='pool'>\d+<\/span>/g, `<span class='pool'>${poolAmount}</span>`);
+        // adjust tooltip description
+        const desc = pack.description
+            .replace(/<span class='choose'>\d+<\/span>/, `<span class='choose'>${chooseAmount}</span>`)
+            .replace(/<span class='pool'>\d+<\/span>/,   `<span class='pool'>${poolAmount}</span>`);
+        el.setAttribute('data-tippy-content', desc);
+        const tip = tippy(el, { allowHTML: true });
+        el._tippyInstance = tip;
 
-        // Add description to tooltip
-        packElement.setAttribute('data-tippy-content', adjustedDescription);
-        const tooltip = tippy(packElement, { allowHTML: true });
-        packElement._tippyInstance = tooltip;
-
-        packElement.addEventListener('click', function () {
-            let cost = parseInt(this.dataset.cost.replace(/,/g, ''), 10);
-            if (game.data.credits >= cost) {
-                game.data.creditsOwed = cost; // Subtract cost from player's credits
-                openPack(this, poolAmount, chooseAmount); // Pass the pool and choose amounts to the openPack function
+        // click handler
+        el.addEventListener('click', () => {
+            const price = parseInt(el.dataset.cost.replace(/,/g, ''), 10);
+            if (game.data.credits >= price) {
+                game.data.creditsOwed = price;
+                openPack(el, poolAmount, chooseAmount);
                 refreshDom();
             } else {
                 message("You cannot afford this pack.");
             }
         });
 
-        packsContainer.appendChild(packElement);
+        packsContainer.appendChild(el);
     });
 }
 
 function populateShopLevelUp() {
-    if (game.temp.shopLevelUp) {
-        game.temp.shopLevelUp = false;
+    const shopLevelUp = document.querySelector('#shop .level-up');
+    // Clear any existing slot‐level‐up cards
+    shopLevelUp.innerHTML = '';
 
-        // Append the shop level up to the DOM
-        const shopLevelUp = document.querySelector('#shop .level-up');
-        const cardElement = document.createElement('div');
-        cardElement.className = 'card slot-level-up';
-        cardElement.textContent = 'Slot Pack';
-        shopLevelUp.appendChild(cardElement);
+    const count = game.temp.slotsAvailable;
+    if (count > 0) {
+        // Create one card per available slot
+        for (let i = 0; i < count; i++) {
+            const cardElement = document.createElement('div');
+            cardElement.className = 'card slot-level-up';
+            cardElement.textContent = 'Slot Pack';
 
-        // Event listener for gaining the level up
-        cardElement.addEventListener('click', function() {
-            populateSlotCards();
-            this.remove(); // Remove only the clicked slot-level-up element
-        });
+            cardElement.addEventListener('click', function() {
+                populateSlotCards();
+                this.remove();                  // remove just this card
+                game.temp.slotsAvailable--;     // decrement the slot count
+            });
+
+            shopLevelUp.appendChild(cardElement);
+        }
     }
+
     return false;
 }
 
@@ -4120,28 +4407,39 @@ function populateShopRestock() {
 }
 
 export function visitMercenary() {
-    if (game.data.credits >= game.data.mercenary) {
-        game.data.credits -= game.data.mercenary;
+    const btn = document.querySelector('#shop .mercenary');
 
-        // Base XP increase is now between 0 and 20
-        let xpIncrease = Math.floor(randDecimal() * 21);
-
-        // 5% chance for +200 XP
-        if (randDecimal() <= 0.05) {
-            xpIncrease += 200;
-        } 
-        // 10% chance for +100 XP (but not both)
-        else if (randDecimal() <= 0.10) {
-            xpIncrease += 100;
-        }
-
-        game.data.xp += xpIncrease;
-        checkLevel();
-        refreshDom();
-        updateXPBar();
-    } else {
-        message("You cannot afford to visit the mercenary.");
+    if (game.data.credits < game.data.mercenary) {
+        return message("You cannot afford to visit the mercenary.");
     }
+
+    // Charge cost
+    game.data.credits -= game.data.mercenary;
+
+    // 5% chance they turn you down
+    if (randDecimal() <= 0.05) {
+        btn.classList.add('unavailable');
+        message("The mercenary has turned you down.");
+        refreshDom();
+        return;
+    }
+
+    // Otherwise you get XP
+    let xpIncrease = Math.floor(randDecimal() * 21);
+
+    // 5% chance for +200 XP
+    if (randDecimal() <= 0.05) {
+        xpIncrease += 200;
+    }
+    // 10% chance for +100 XP (but not both)
+    else if (randDecimal() <= 0.10) {
+        xpIncrease += 100;
+    }
+
+    game.data.xp += xpIncrease;
+    checkLevel();
+    refreshDom();
+    updateXPBar();
 }
 
 export function restockShop() {
@@ -4158,6 +4456,7 @@ export function restockShop() {
         populateShopInjectors();
         populateShopPacks();
         populateShopRestock();
+        clearAmounts();
         refreshDom();
     } else {
         message("You cannot afford to restock the shop.");
@@ -4373,66 +4672,86 @@ function openPack(pack, poolAmount, chooseAmount) {
 
             // Display these booster cards
             selectedBoosters.forEach(booster => {
-                let cardElement = document.createElement('div');
-                cardElement.className = 'booster-card card';
-                cardElement.textContent = prettyName(booster.id);
-                let rarityElement = document.createElement('span');
-                rarityElement.textContent = '(' + booster.rarity + ')';
-                cardElement.appendChild(rarityElement);
-                handleSelection(cardElement, function() {
+                const el   = createCard(booster, 'booster');
+                const cost = parseInt(el.getAttribute('data-cost').replace(/,/g, ''), 10);
+            
+                el.addEventListener('click', () => {
+                    // 1) Make sure there’s a free slot
+                    const availableSlot = getAvailableSlot(booster.type);
+                    if (!availableSlot) {
+                        message(`No available ${booster.type} slots.`);
+                        return;  // bail out before spending credits or closing modal
+                    }
+            
+                    // 2) Make sure they can afford it
+                    if (game.data.credits < cost) {
+                        message("Not enough credits to purchase this booster.");
+                        return;
+                    }
+            
+                    // 3) All good → add it, deduct credits, refresh UI
                     addBoosterToSlots(booster);
+                    game.data.credits -= cost;
+                    refreshDom();
+            
+                    // 4) Close the selection modal
+                    const modal = document.getElementById('selection-modal');
+                    if (modal) modal.classList.remove('shown');
                 });
-                itemsContainer.appendChild(cardElement);
-            });
+            
+                itemsContainer.appendChild(el);
+            });            
+            
             break;
 
         case 'stardustpack':
-            // Create a weighted array of injectors based on their weights
-            selectionCancel.classList.remove('shown');
-            let weightedInjectors = [];
-            game.injectors.forEach(injector => {
-                for (let i = 0; i < injector.weight; i++) {
-                    weightedInjectors.push(injector);
-                }
-            });
-
-            game.data.credits -= game.data.creditsOwed;
-            game.data.creditsOwed = 0;
-        
-            // Shuffle the weighted injectors array
-            weightedInjectors = weightedInjectors.sort(() => 0.5 - randDecimal());
-        
-            // Pick the first `poolAmount` unique injectors
-            let selectedInjectors = [];
-            let addedInjectorIds = new Set();
-        
-            for (let injector of weightedInjectors) {
-                if (selectedInjectors.length >= poolAmount) break;
-                if (!addedInjectorIds.has(injector.id)) {
-                    selectedInjectors.push(injector);
-                    addedInjectorIds.add(injector.id);
-                }
-            }
-        
-            selectionModal.classList.add('injectors');
-        
-            // Display the selected injectors
-            selectedInjectors.forEach(injector => {
-                let cardElement = document.createElement('div');
-                cardElement.className = 'injector card';
-                cardElement.textContent = prettyName(injector.id); // Format the injector name
-                cardElement.setAttribute('data-tippy-content', injector.description); // Add tooltip with description
-                let rarityElement = document.createElement('span');
-                rarityElement.textContent = '(' + injector.rarity + ')';
-                cardElement.appendChild(rarityElement);
-                handleSelection(cardElement, function() {
-                    addInjectorToSlots(injector);
+                // Create a weighted array of rare injectors based on their weights
+                selectionCancel.classList.remove('shown');
+                let weightedInjectors = [];
+                game.injectors.forEach(injector => {
+                    if (injector.rarity === "rare") {
+                        for (let i = 0; i < injector.weight; i++) {
+                            weightedInjectors.push(injector);
+                        }
+                    }
                 });
-        
-                itemsContainer.appendChild(cardElement);
-            });
-            break;            
-
+            
+                game.data.credits -= game.data.creditsOwed;
+                game.data.creditsOwed = 0;
+            
+                // Shuffle the weighted injectors array
+                weightedInjectors = weightedInjectors.sort(() => 0.5 - randDecimal());
+            
+                // Pick the first `poolAmount` unique injectors
+                let selectedInjectors = [];
+                let addedInjectorIds = new Set();
+            
+                for (let injector of weightedInjectors) {
+                    if (selectedInjectors.length >= poolAmount) break;
+                    if (!addedInjectorIds.has(injector.id)) {
+                        selectedInjectors.push(injector);
+                        addedInjectorIds.add(injector.id);
+                    }
+                }
+            
+                selectionModal.classList.add('injectors');
+            
+                // Display the selected injectors
+                selectedInjectors.forEach(injector => {
+                    let cardElement = document.createElement('div');
+                    cardElement.className = 'injector card';
+                    cardElement.textContent = prettyName(injector.id); // Format the injector name
+                    cardElement.setAttribute('data-tippy-content', injector.description); // Add tooltip with description
+                    let rarityElement = document.createElement('span');
+                    rarityElement.textContent = '(' + injector.rarity + ')';
+                    cardElement.appendChild(rarityElement);
+                    handleSelection(cardElement, function() {
+                        addInjectorToSlots(injector);
+                    });
+                    itemsContainer.appendChild(cardElement);
+                });
+            break;
+            
         case 'armamentpack':
             // Display cards of the randomly selected type, one of each color
             selectionCancel.classList.add('shown');
@@ -4668,106 +4987,120 @@ function applySpecialEffect(effectName) {
 }
 
 function populateShopBoosters() {
-    const boostersContainer = document.querySelector('#shop .boosters');
+    const boostersContainer    = document.querySelector('#shop .boosters');
+    const currentBoosterCount  = boostersContainer.children.length;
+    const boostersToAdd        = Math.max(game.slots.shopBoosterSlots - currentBoosterCount, 0);
+    const playerRank           = stats.data.rank;
+    const rarityWeights        = game.data.boosterRarity; 
+    const defaultBaseWeight    = 50;
 
-    // Get the number of boosters currently displayed in the shop
-    const currentBoosterCount = boostersContainer.children.length;
+    // 1) filter out owned + lock by rank/rarity
+    const availableBoosters = game.boosters.filter(b => {
+        if (!game.data.duplicateBoosters && b.owned) return false;
+        switch (b.rarity) {
+            case 'common':
+            case 'uncommon':
+                return true;
+            case 'rare':
+                return playerRank > 0;
+            case 'legendary':
+                return playerRank > 2;
+            default:
+                return false;
+        }
+    });
 
-    // Calculate how many new boosters to add
-    let boostersToAdd = game.slots.shopBoosterSlots - currentBoosterCount;
+    // 2) apply rarity multiplier to each booster’s weight
+    const boostersWithEffectiveWeights = availableBoosters.map(b => {
+        const baseW   = b.weight ?? defaultBaseWeight;
+        const rarityW = rarityWeights[b.rarity] ?? 1;
+        return { 
+            ...b, 
+            weight: baseW * rarityW 
+        };
+    });
 
-    // Ensure that we do not attempt to add negative or zero boosters
-    boostersToAdd = Math.max(boostersToAdd, 0);
+    // 3) pick N by the new weights
+    const selectedBoosters = weightedSelect(boostersWithEffectiveWeights, boostersToAdd);
 
-    // Filter out owned boosters unless duplicates are allowed
-    let availableBoosters = game.boosters.filter(booster => 
-        game.data.duplicateBoosters || !booster.owned
-    );
-
-    // Map each booster to ensure a weight property exists (fallback to 50)
-    const boostersWithWeights = availableBoosters.map(booster => ({
-        ...booster,
-        weight: booster.weight ?? 50  // Default to 50 if booster.weight is undefined
-    }));
-    
-    // Use weightedSelect on boostersWithWeights
-    let selectedBoosters = weightedSelect(boostersWithWeights, boostersToAdd);
-
+    // 4) render them
     selectedBoosters.forEach(booster => {
-        let boosterElement = createCard(booster, 'booster');
-        const boosterCost = parseInt(boosterElement.getAttribute('data-cost').replace(/,/g, ''), 10);
+        const el   = createCard(booster, 'booster');
+        const cost = parseInt(el.getAttribute('data-cost').replace(/,/g, ''), 10);
 
-        boosterElement.addEventListener('click', function () {
-            // Check if the player has enough credits to purchase the booster
-            if (game.data.credits >= boosterCost) {
+        el.addEventListener('click', () => {
+            if (game.data.credits >= cost) {
                 addBoosterToSlots(booster);
-                game.data.credits -= boosterCost;
+                game.data.credits -= cost;
                 refreshDom();
             } else {
                 message("Not enough credits to purchase this booster.");
             }
         });
 
-        boostersContainer.appendChild(boosterElement);
+        boostersContainer.appendChild(el);
     });
 }
 
 function populateShopInjectors() {
     const injectorsContainer = document.querySelector('#shop .injectors');
-
-    // Get the number of injectors currently displayed in the shop
     const currentInjectorCount = injectorsContainer.children.length;
+    let injectorsToAdd = Math.max(game.slots.shopInjectorSlots - currentInjectorCount, 0);
 
-    // Calculate how many new injectors to add
-    let injectorsToAdd = game.slots.shopInjectorSlots - currentInjectorCount;
+    const playerRank = stats.data.rank;
 
-    // Ensure that we do not attempt to add negative or zero injectors
-    injectorsToAdd = Math.max(injectorsToAdd, 0);
-
-    // Create a weighted list of injectors based on their weight property
-    let weightedInjectors = [];
-    game.injectors.forEach(injector => {
-        for (let i = 0; i < injector.weight; i++) {
-            weightedInjectors.push(injector);
+    // first filter by rarity lock
+    const availableInjectors = game.injectors.filter(injector => {
+        switch (injector.rarity) {
+            case 'common':
+            case 'uncommon':
+                return true;
+            case 'rare':
+                return playerRank > 1;
+            case 'legendary':
+                return playerRank > 3;
+            default:
+                return false;
         }
     });
 
-    // Shuffle the weighted array
-    let shuffledInjectors = weightedInjectors.sort(() => 0.5 - randDecimal());
+    // build weighted list
+    let weightedInjectors = [];
+    availableInjectors.forEach(inj => {
+        for (let i = 0; i < (inj.weight ?? 50); i++) {
+            weightedInjectors.push(inj);
+        }
+    });
 
-    // Pick the first N unique ones for the shop slots
-    let selectedInjectors = [];
-    let addedInjectorIds = new Set();
-
-    for (let injector of shuffledInjectors) {
+    // shuffle & take first unique
+    let shuffled = weightedInjectors.sort(() => 0.5 - randDecimal());
+    const selectedInjectors = [];
+    const seen = new Set();
+    for (let inj of shuffled) {
         if (selectedInjectors.length >= injectorsToAdd) break;
-        if (!addedInjectorIds.has(injector.id)) {
-            selectedInjectors.push(injector);
-            addedInjectorIds.add(injector.id);
+        if (!seen.has(inj.id)) {
+            seen.add(inj.id);
+            selectedInjectors.push(inj);
         }
     }
 
-    // Add the selected injectors to the shop
+    // render
     selectedInjectors.forEach(injector => {
-        let injectorElement = createCard(injector, 'injector');
-        const injectorCost = parseInt(injectorElement.getAttribute('data-cost').replace(/,/g, ''), 10);
-
-        // Handle injector purchase
-        injectorElement.addEventListener('click', function () {
-            // Check if the player has enough credits to purchase the injector
-            if (game.data.credits >= injectorCost) {
+        const el = createCard(injector, 'injector');
+        const cost = parseInt(el.getAttribute('data-cost').replace(/,/g, ''), 10);
+        el.addEventListener('click', () => {
+            if (game.data.credits >= cost) {
                 addInjectorToSlots(injector);
-                game.data.credits -= injectorCost;
+                game.data.credits -= cost;
                 refreshDom();
-                
             } else {
                 message('Not enough credits to purchase this injector.');
             }
         });
-
-        injectorsContainer.appendChild(injectorElement);
+        injectorsContainer.appendChild(el);
     });
 }
+
 
 // Helper function to check for available slots
 function getAvailableSlot(type) {
@@ -4792,16 +5125,19 @@ function getAvailableSlot(type) {
 // Adds the booster to the game object logic (without DOM manipulation)
 function addBoosterToGame(booster) {
     let boosterCardsArrayName = '';
-
+    let containerSelector = '';
     switch (booster.type) {
         case 'bridge':
             boosterCardsArrayName = 'bridgeCards';
+            containerSelector = '#bridge-slots';
             break;
         case 'engineering':
             boosterCardsArrayName = 'engineeringCards';
+            containerSelector = '#engineering-slots';
             break;
         case 'armory':
             boosterCardsArrayName = 'armoryCards';
+            containerSelector = '#armory-slots';
             break;
     }
 
@@ -4817,8 +5153,26 @@ function addBoosterToGame(booster) {
         game.boosters[boosterIndex].owned = true;
     }
 
-    // Add the booster to the correct slot array in the game object
-    game.slots[boosterCardsArrayName].push(copiedBooster);
+    // Determine the correct DOM container and get all slot elements
+    const container = document.querySelector(containerSelector);
+    if (container) {
+        // Get all booster slot elements in their DOM order
+        const slotElements = Array.from(container.querySelectorAll('.booster-slot'));
+        // Find the first available slot (the one that is not yet boosted)
+        const availableSlot = slotElements.find(slot => !slot.hasAttribute('data-boosted') || slot.getAttribute('data-boosted') !== "true");
+        const slotIndex = slotElements.indexOf(availableSlot);
+        if (slotIndex !== -1) {
+            // Insert the booster at the corresponding index in the game.slots array
+            game.slots[boosterCardsArrayName].splice(slotIndex, 0, copiedBooster);
+        } else {
+            // Fallback: if for some reason no slot is found, push it to the end
+            game.slots[boosterCardsArrayName].push(copiedBooster);
+        }
+    } else {
+        // Fallback: if the container is not found, push it to the end
+        game.slots[boosterCardsArrayName].push(copiedBooster);
+    }
+
     return copiedBooster;
 }
 

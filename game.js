@@ -29,7 +29,7 @@ const data = {
   level: 1,
   xp: 0,
   xpThreshold: 100, // Base XP required for the first level-up
-  scalingFactor: 60, // Controls how steeply XP increases per level - increase this value for higher xp requirements, decrease for lower. a good range is 50 - 100
+  scalingFactor: 50, // Controls how steeply XP increases per level - increase this value for higher xp requirements, decrease for lower. a good range is 50 - 100
   spread: 1,
   credits: 0,
   mercenary: 5,
@@ -71,12 +71,12 @@ const data = {
     rare: 3,
     legendary: 10
   },
-  injectorCost: 5,
+  injectorCost: 15,
   injectorCostMultiplier: {
     common: 1,
-    uncommon: 1.5,
+    uncommon: 2,
     rare: 3,
-    legendary: 5
+    legendary: 6
   },
   specialWeights: {
     foil: 2,
@@ -119,9 +119,11 @@ const temp = {
   scoringCards: [],
   stowCards: [],
   currentEnemy: {},
+  currentShield: [],
+  currentVulnerability: [],
+  currentDebuff: [],
   multiplierMapping: {},
   cumulativeDamage: 0,
-  shopLevelUp: false,
   damage: 0,
   power: 1,
   pierce: 1,
@@ -133,26 +135,28 @@ const temp = {
   persistentSpread: 0,
   currentContext: 'overworld', // overworld, hangar, combat, etc.
   combosStowed: 0,
+  slotsAvailable: 0,
+  systemHeartAvailable: true
 };
 
 const comboTypeLevels = {
-  biArmament: { level: 1, baseDamage: 50, played: 0 },
-  biChromatic: { level: 1, baseDamage: 80, played: 0 },
-  biChromaticArmament: { level: 1, baseDamage: 200, played: 0 },
-  triArmament: { level: 1, baseDamage: 300, played: 0 },
-  triChromatic: { level: 1, baseDamage: 500, played: 0 },
-  triChromaticArmament: { level: 1, baseDamage: 800, played: 0 },
-  chargedArmament: { level: 1, baseDamage: 400, played: 0 },
-  chargedChromatic: { level: 1, baseDamage: 600, played: 0 },
-  chargedChromaticArmament: { level: 1, baseDamage: 1000, played: 0 },
-  quadArmament: { level: 1, baseDamage: 1200, played: 0 },
+  //biArmament: { level: 1, baseDamage: 40, played: 0 },
+  //biChromatic: { level: 1, baseDamage: 60, played: 0 },
+  //biChromaticArmament: { level: 1, baseDamage: 120, played: 0 },
+  triArmament: { level: 1, baseDamage: 250, played: 0 },
+  chargedArmament: { level: 1, baseDamage: 300, played: 0 },
+  triChromatic: { level: 1, baseDamage: 600, played: 0 },
+  chargedChromatic: { level: 1, baseDamage: 800, played: 0 },
+  quadArmament: { level: 1, baseDamage: 1000, played: 0 },
+  fullSpectrum: { level: 1, baseDamage: 1500, played: 0 },
   quadChromatic: { level: 1, baseDamage: 2000, played: 0 },
-  quadChromaticArmament: { level: 1, baseDamage: 6000, played: 0 },
-  fullArmament: { level: 1, baseDamage: 8000, played: 0 },
+  fullArmament: { level: 1, baseDamage: 4000, played: 0 },
+  triChromaticArmament: { level: 1, baseDamage: 8000, played: 0 },
   fullChromatic: { level: 1, baseDamage: 10000, played: 0 },
-  fullSpectrum: { level: 1, baseDamage: 12000, played: 0 },
-  fullChromaticArmament: { level: 1, baseDamage: 16000, played: 0 },
-  fullSpectrumArmament: { level: 1, baseDamage: 24000, played: 0 },
+  chargedChromaticArmament: { level: 1, baseDamage: 12000, played: 0 },
+  quadChromaticArmament: { level: 1, baseDamage: 25000, played: 0 },
+  fullSpectrumArmament: { level: 1, baseDamage: 50000, played: 0 },
+  fullChromaticArmament: { level: 1, baseDamage: 100000, played: 0 },
 };
 
 // This is our single shared game object:

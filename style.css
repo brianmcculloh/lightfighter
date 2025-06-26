@@ -95,6 +95,7 @@ input[type="text"] {
 }
 .unavailable {
   pointer-events: none !important;
+  opacity:.5;
 }
 .scrollbar::-webkit-scrollbar {
   width: 11px;
@@ -371,6 +372,9 @@ input[type="text"] {
 #arsenal-modal.modal {
   z-index: 9999;
 }
+#codex {
+  overflow:auto;
+}
 #end-game {
   z-index: 99999;
 }
@@ -463,7 +467,6 @@ input[type="text"] {
   font-size:13px;
 }
 #score .combo-name,
-#score .damage-amounts,
 #score .times {
   text-align: center;
   justify-content: center;
@@ -484,9 +487,10 @@ input[type="text"] {
 }
 #score .number {
   border: 1px solid white;
-  padding: 10px;
-  height: 55px;
-  font-size: 30px;
+  padding: 7px;
+  height: 45px;
+  font-size: 22px;
+  letter-spacing:-1px;
   display: flex;
   align-items: center;
   transition: all 0.1s;
@@ -496,23 +500,19 @@ input[type="text"] {
 #score .number.active {
   background: lime;
 }
-#score .damage-amounts {
-  font-size: 30px;
-  padding-right: 10px;
-  padding-top: 8px;
-  color: yellow;
-  display: flex;
-  justify-content: space-between;
-}
-#score .damage-amounts .total-damage {
-  padding-top: 10px;
+#score .total-damage {
+  color:yellow;
+  font-size:22px;
+  text-align:right;
+  letter-spacing:-1px;
+  padding-right:8px;
 }
 #score .times {
   font-size: 26px;
   justify-content: flex-end;
   padding-right: 15px;
 }
-#score .damage-amounts .times {
+#score .times {
   padding-right: 0;
   padding-top: 10px;
 }
@@ -657,6 +657,7 @@ input[type="text"] {
 }
 #player .attack,
 #player .stow {
+  transition:all .3s;
   width: 120px;
   height: 255px;
   border: 1px solid white;
@@ -819,7 +820,7 @@ input[type="text"] {
 #cards {
   height: 200px;
 }
-#cards .card.disabled {
+#cards .card.disabled, #guns .card.disabled {
   opacity: 0.3;
 }
 .card {
@@ -882,6 +883,9 @@ input[type="text"] {
   .amounts-wrapper {
     display:none;
     color:white;
+  }
+  .fired {
+    display:none;
   }
   &.disabled {
     border-color: rgba(255, 255, 255, 0.3);

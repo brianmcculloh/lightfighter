@@ -109,6 +109,8 @@
 
         <input id="custom-seed" type="text" placeholder="Custom Seed..." />
 
+        <div id="codex"></div>
+
         <div class="button done">DONE</div>
       </div>
 
@@ -182,14 +184,10 @@
             <div class="combo-played"></div>
           </div>
           <div class="number damage" id="damage">0</div>
-          <div class="times">&times;</div>
           <div class="number power" id="power">1</div>
-          <div class="damage-amounts">
-            <div class="number pierce" id="pierce">1</div>
-            <div class="times">&times;</div>
-            <div class="number spread" id="spread">1</div>
-            <div class="total-damage"><span></span></div>
-          </div>
+          <div class="number pierce" id="pierce">1</div>
+          <div class="number spread" id="spread">1</div>
+          <div class="total-damage"><span></span></div>
           <div class="crit"></div>
         </div>
       </div>
@@ -198,6 +196,7 @@
         <div class="system-class">
           <div class="current-system">System: <span></span></div>
           <div class="current-class">Class: <span></span></div>
+          <div class="current-rank">Rank: <span></span></div>
         </div>
         <div class="cumulative-damage">Battle Damage: <span></span></div>
 
@@ -225,37 +224,27 @@
             <span class="total"></span>
           </div>
 
-          <div class="stow">
-            <div>Stows:</div>
-            <span class="total"></span>
-          </div>
-
-          <div class="attack">
-            <div>Attacks:</div>
-            <span class="total"></span>
-          </div>
-
-          <div class="foil">
+          <div class="foilPower">
             <div>Foil:</div>
             <span class="total"></span>
           </div>
 
-          <div class="holo">
+          <div class="holoPower">
             <div>Holo:</div>
             <span class="total"></span>
           </div>
 
-          <div class="sleeve">
+          <div class="sleevePower">
             <div>Sleeve:</div>
             <span class="total"></span>
           </div>
 
-          <div class="gold-leaf">
+          <div class="goldCredits">
             <div>Gold Leaf:</div>
             <span class="total"></span>
           </div>
 
-          <div class="texture">
+          <div class="textureLevels">
             <div>Texture:</div>
             <span class="total"></span>
           </div>

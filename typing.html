@@ -1,0 +1,86 @@
+<div class="search-box">
+    <div class="search-input">
+      <span id="typed-text"></span><span class="cursor">|</span>
+    </div>
+  </div>
+  
+<style>
+    .search-box {
+  /* center in hero, size as needed */
+  width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.search-input {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 24px;
+  padding: 10px 20px;
+  font-size: 1.2rem;
+  display: inline-flex;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#typed-text {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.cursor {
+  display: inline-block;
+  margin-left: 2px;
+  animation: blink 0.8s steps(1) infinite;
+}
+
+/* blinking effect */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+</style>
+
+<script>
+    const phrases = [
+      'Search for your next adventure',
+      'Find recipes and ideas',
+      'Discover hidden gems'
+    ];
+    const typingSpeed    = 100;   // ms per character
+    const deletingSpeed  = 50;    // ms per character
+    const pauseAfterType = 2000;  // ms to wait when full phrase is typed
+  
+    let partIndex       = 0;
+    let charIndex       = 0;
+    let typingForward   = true;
+    const typedTextElem = document.getElementById('typed-text');
+  
+    function updateText() {
+      const current = phrases[partIndex];
+      if (typingForward) {
+        // type next char
+        typedTextElem.textContent = current.slice(0, ++charIndex);
+        if (charIndex === current.length) {
+          typingForward = false;
+          return setTimeout(updateText, pauseAfterType);
+        }
+        setTimeout(updateText, typingSpeed);
+      } else {
+        // delete last char
+        typedTextElem.textContent = current.slice(0, --charIndex);
+        if (charIndex === 0) {
+          typingForward = true;
+          partIndex = (partIndex + 1) % phrases.length;
+        }
+        setTimeout(updateText, deletingSpeed);
+      }
+    }
+  
+    // kick it off
+    document.addEventListener('DOMContentLoaded', () => {
+      updateText();
+    });
+  </script>
+  

@@ -1,4 +1,4 @@
-import { populateArsenalModal, populateCombosModal, populateStatsModal, stowEquippedCards, playEquippedCards, showOverworld, shop, init, checkLevel, visitMercenary, restockShop, refreshDom } from './script.js';
+import { populateArsenalModal, populateCombosModal, populateStatsModal, populateShopSystemHearts, stowEquippedCards, playEquippedCards, showOverworld, shop, init, checkLevel, visitMercenary, restockShop, refreshDom } from './script.js';
 import { clearGameState, loadGameState, clearStats, saveStats } from './db.js';
 import { customDialog } from './utils.js';
 import game from './game.js';
@@ -117,6 +117,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('embark').classList.add('shown');
                 document.getElementById('continue-game').classList.remove('shown');
                 document.getElementById('new-game').classList.remove('shown');
+                // only populate system hearts initially for new games
+                populateShopSystemHearts();
+                // clear the local storage
                 clearGameState();
             }
         });

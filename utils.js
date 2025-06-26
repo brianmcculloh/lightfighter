@@ -92,6 +92,17 @@ function randFromArray(arr, count) {
     return shuffled.slice(0, count);
 }
 
+/**
+ * Round to one decimal place.
+ * If the result is whole, return it with no decimal point.
+ * Otherwise return with exactly one decimal digit.
+ */
+function formatTenth(value) {
+    const rounded = Math.round(value * 10) / 10;
+    return (rounded % 1 === 0)
+      ? rounded.toString()
+      : rounded.toFixed(1);
+}  
 
 function sortArsenal(combinedArsenal, RAINBOW_ORDER, CARD_TYPES) {
     return combinedArsenal.sort((a, b) => {
@@ -192,57 +203,51 @@ function fireAtEnemy(cardElement) {
     // 1) Calculate start (top center of the card)
     const cardRect = cardElement.getBoundingClientRect();
     const startX = cardRect.left + cardRect.width / 2;
-    const startY = cardRect.top; // top edge
-  
-    // 2) Calculate end (bottom right of the enemy health bar)
+    const startY = cardRect.top;
+
+    // 2) Calculate randomized end point on the enemy health bar
     const enemyBar = document.querySelector('.enemy-health-bar');
     if (!enemyBar) {
-      console.warn('No enemy health bar found!');
-      return;
+        console.warn('No enemy health bar found!');
+        return;
     }
     const barRect = enemyBar.getBoundingClientRect();
-    const endX = barRect.left + barRect.width - 50;      // right edge minus offset
-    const endY = barRect.top + barRect.height;      // bottom edge
-  
+
+    let hitX;
+    if (barRect.width > 400) {
+        // middle 300px segment
+        const segmentStart = barRect.left + (barRect.width - 400) / 2;
+        hitX = segmentStart + Math.random() * 400;
+    } else {
+        // entire bar
+        hitX = barRect.left + Math.random() * barRect.width;
+    }
+    const hitY = barRect.top + barRect.height;
+
     // 3) Determine the distance and angle
-    const diffX = endX - startX;
-    const diffY = endY - startY;
-    const distance = Math.sqrt(diffX * diffX + diffY * diffY); // length of beam
-    // Angle in degrees
+    const diffX = hitX - startX;
+    const diffY = hitY - startY;
+    const distance = Math.hypot(diffX, diffY);
     const angleDeg = Math.atan2(diffY, diffX) * (180 / Math.PI);
-  
+
     // 4) Create the beam element
     const beam = document.createElement('div');
     beam.classList.add('energy-beam');
-  
-    // Position it so its "top-left corner" is exactly the beam's origin
-    beam.style.left = `${startX}px`;
-    beam.style.top = `${startY}px`;
-    // The beam's width = final distance it needs to span
+    beam.style.left  = `${startX}px`;
+    beam.style.top   = `${startY}px`;
     beam.style.width = `${distance}px`;
-    
-    // By default, we set transform to rotate(...) scaleX(0) so it's “collapsed”
-    // And we’ll transition to scaleX(1) to extend it to full length.
     beam.style.transform = `rotate(${angleDeg}deg) scaleX(0)`;
 
-    // Set the color of the beam
+    // color class
     const color = cardElement.dataset.color;
-    if(color) beam.classList.add(color);
-  
-    // 5) Append to the body (or another container) so it can move freely
+    if (color) beam.classList.add(color);
+
     document.body.appendChild(beam);
-  
-    // Force a reflow so the browser applies initial styles
-    // then trigger the scaleX animation
-    beam.offsetHeight; // read a layout property to trigger reflow
-  
-    // Animate from scaleX(0) to scaleX(1)
+    beam.offsetHeight; // trigger reflow
     beam.style.transform = `rotate(${angleDeg}deg) scaleX(1)`;
-  
-    // 6) Clean up after the transition finishes
-    beam.addEventListener('transitionend', () => {
-      beam.remove();
-    });
+
+    // 5) Clean up
+    beam.addEventListener('transitionend', () => beam.remove());
 }
 
 /**
@@ -652,6 +657,7 @@ export {
     sortArsenal,
     numberToRoman,
     randFromArray,
+    formatTenth,
     prettyName,
     weightedSelect,
     togglePointerEvents,

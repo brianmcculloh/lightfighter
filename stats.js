@@ -10,6 +10,7 @@ const defaultData = {
     highest_card_level: 1,
     highest_combo_level: 1,
     highest_win_streak: 0,
+    rank: 0,
 
     discovered: {
         boosters: [],
