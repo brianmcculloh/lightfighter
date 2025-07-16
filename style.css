@@ -348,6 +348,11 @@ input[type="text"] {
 }
 .modal.boosters {
   height: 65vh;
+  .booster {
+    .cost, .amounts-wrapper {
+      display:none;
+    }
+  }
 }
 .modal .items {
   display: flex;

@@ -29,7 +29,7 @@ const data = {
   level: 1,
   xp: 0,
   xpThreshold: 100, // Base XP required for the first level-up
-  scalingFactor: 50, // Controls how steeply XP increases per level - increase this value for higher xp requirements, decrease for lower. a good range is 50 - 100
+  scalingFactor: 50, // Controls how steeply XP increases per level - increase this value for higher xp requirements, decrease for lower. a good range is 40 - 100
   spread: 1,
   credits: 0,
   mercenary: 5,
@@ -39,6 +39,7 @@ const data = {
   duplicateBoosters: false,
   maxWavelengths: false,
   boosterSellbacks: false,
+  doubleBossRewards: false,
   class: 0,
   system: 1,
   lives: 1,
@@ -50,9 +51,9 @@ const data = {
   attacksRemaining: 3,
   stowsTotal: 3,
   stowsRemaining: 3,
-  foilPower: 1.4,
-  holoPower: 1.4,
-  sleevePower: 1.4,
+  foilPower: 1.1,
+  holoPower: 1.1,
+  sleevePower: 1.1,
   goldCredits: 1,
   textureLevels: 1,
   removals: 1,
@@ -60,29 +61,29 @@ const data = {
   systemHearts: [],
   boosterRarity: {
     common: 5.5,
-    uncommon: 3.4,
+    uncommon: 3.5,
     rare: 1.0,
-    legendary: 0.1
+    legendary: 0.2
   },
   boosterCost: 5,
   boosterCostMultiplier: {
     common: 1,
     uncommon: 1.5,
-    rare: 3,
-    legendary: 10
+    rare: 5,
+    legendary: 20
   },
   injectorCost: 15,
   injectorCostMultiplier: {
     common: 1,
     uncommon: 2,
     rare: 3,
-    legendary: 6
+    legendary: 10
   },
   specialWeights: {
     foil: 2,
     holo: 2,
     sleeve: 1.5,
-    gold_credits: 0.5,
+    gold_credits: 0.25,
     texture: 0.1
   },
   packSizeChances: {
@@ -136,7 +137,8 @@ const temp = {
   currentContext: 'overworld', // overworld, hangar, combat, etc.
   combosStowed: 0,
   slotsAvailable: 0,
-  systemHeartAvailable: true
+  systemHeartAvailable: true,
+  currentSystemHeart: {}
 };
 
 const comboTypeLevels = {

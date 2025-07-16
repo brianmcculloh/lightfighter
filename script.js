@@ -2,18 +2,20 @@
  * 
  * PHASE I: GAME ENGINE
  * 
- * TODO: do something cool with critical hits
- * TODO: how are we currently leveraging compareEffects on boosters?
- * TODO: play first 10 systems and see if enemy health and shield/vuln/debuffs work and feel good
- * -- then do systems 11 - 18
- * 
+ * FUTURE: do something cool with critical hits
+ * FUTURE: how are we currently leveraging compareEffects on boosters?
  * 
  * 
  * PHASE II: BALANCE & PLAYTESTING
  * 
- * TODO: splash and intro
- * TODO: settings screen
- * TODO: enhance overworld with messaging/lore
+ * TODO: use AI to add runes to packs, which double the pack effects
+ * TODO: system heart that doubles effects of runes
+ * TODO: Playtest for balance and scaling - check if enemies or boosters need adjusted
+ *          -- number of playtests on current iteration: 1
+ * 
+ * NEXT: splash and intro
+ * NEXT: settings screen
+ * NEXT: enhance overworld with messaging/lore
  * 
  * 
  * 
@@ -24,9 +26,9 @@
  * 
  * 
  * CARD EFFECTS
- * --foil: multiplies (game.foilPower + card.level) to power when drawn (x1.4)
- * --holo: multiplies (game.holoPower + card.level) to power when played (x1.4)
- * --sleeve: multiplies (game.sleevePower + card.level) to power when held (x1.4)    
+ * --foil: multiplies (game.foilPower + card.level) to power when drawn (x1.1)
+ * --holo: multiplies (game.holoPower + card.level) to power when played (x1.1)
+ * --sleeve: multiplies (game.sleevePower + card.level) to power when held (x1.1)    
  * --gold leaf: adds (game.goldCredits + card.level) to credits when played as part of a combo (+1)
  * --texture: level up (game.textureLevels) when played as part of a combo
  * 
@@ -114,7 +116,7 @@ function manualLoad() {
         //'system_class'
     ];
     let hearts = [
-        //'attack',
+        //'double_boss_rewards',
     ];
     let injectors = [
         //'add_damage_2000',
@@ -502,6 +504,7 @@ export function showOverworld(increaseFloor = true) {
             game.data.system += 1;
             game.data.class = 0;
             game.temp.systemHeartAvailable = true;
+            game.temp.currentSystemHeart = {};
         }
         game.data.class++;
     }
@@ -2262,7 +2265,7 @@ async function processBooster(booster, cardElement = false) {
         chainMultiplier = game.temp.multiplierMapping[booster.guid];
     }
     
-    // Apply the chain multiplier to the booster’s attributes
+    // Apply the chain multiplier to the booster's attributes
     boosterDamage *= chainMultiplier;
     boosterPower *= chainMultiplier;
     boosterPierce *= chainMultiplier;
@@ -2520,11 +2523,15 @@ async function boosterAction(booster, cardElement = false) {
             if(cardElement) cardElement.classList.add("active"); // Visually mark the card as being affected by the booster
             document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
             upgradeHighestLevelCombo();
+            await new Promise(resolve => setTimeout(resolve, game.config.cardDelay)); 
+            if (cardElement) cardElement.classList.remove("active");
         break;
         case 'upgrade_random_combo':
             if(cardElement) cardElement.classList.add("active");
             document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
             upgradeRandomCombo();
+            await new Promise(resolve => setTimeout(resolve, game.config.cardDelay)); 
+            if (cardElement) cardElement.classList.remove("active");
         break;
         case 'upgrade_played_combo':
             let comboType = document.querySelector('.combo-name span').getAttribute('data-type');
@@ -2532,7 +2539,8 @@ async function boosterAction(booster, cardElement = false) {
                 if(cardElement) cardElement.classList.add("active");
                 document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
                 updateComboLevel(comboType, levelIncrement);
-                console.log(`Upgraded ${comboType} to level ${game.comboTypeLevels[comboType].level}`);
+                await new Promise(resolve => setTimeout(resolve, game.config.cardDelay)); 
+                if (cardElement) cardElement.classList.remove("active");
             } else {
                 console.log("No combo was played or combo type is unknown.");
             }
@@ -2543,7 +2551,8 @@ async function boosterAction(booster, cardElement = false) {
                 if(cardElement) cardElement.classList.add("active");
                 document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
                 updateComboLevel(stowedComboType, levelIncrement);
-                console.log(`Upgraded ${stowedComboType} to level ${game.comboTypeLevels[stowedComboType].level}`);
+                await new Promise(resolve => setTimeout(resolve, game.config.cardDelay)); 
+                if (cardElement) cardElement.classList.remove("active");
             } else {
                 console.log("No combo was stowed or combo type is unknown.");
             }
@@ -2649,6 +2658,8 @@ async function boosterAction(booster, cardElement = false) {
             await new Promise(resolve => setTimeout(resolve, game.config.cardDelay)); 
             statElement.classList.remove("active");
             document.querySelector(`[data-guid="${booster.guid}"]`).classList.add("active");
+            await new Promise(resolve => setTimeout(resolve, game.config.cardDelay)); 
+            if (cardElement) cardElement.classList.remove("active");
         break;
         case 'upgrade_played_cards':
             for (const gunCard of game.temp.gunCards) {
@@ -3603,7 +3614,7 @@ function updateCardDamage(card, cardDamage) {
     );
     if (cardElement) {
         const damageSpan = cardElement.querySelector('.damage');
-        // use formatTenth to drop “.0” when it’s whole, or show one decimal otherwise
+        // use formatTenth to drop ".0" when it's whole, or show one decimal otherwise
         const damageDisplay = '+' + formatTenth(cardDamage);
         damageSpan.textContent = damageDisplay;
     }
@@ -3627,7 +3638,7 @@ function updateCardPower(card, context = 'hand') {
     }
 
     if (cardElementEquipped) {
-        // default for “hand” or fallback
+        // default for "hand" or fallback
         let powerDisplay = foil > 1
           ? 'x' + formatTenth(foil)
           : '';
@@ -3824,9 +3835,26 @@ export async function endCombat(result) {
     if (result == 'win') {
         // Check for any self improves
         improveBoosters('win');
+        // Determine if this was a boss fight (class === 5)
+        let isBoss = game.temp.currentEnemy && game.temp.currentEnemy.class === 5;
+        // Check for system heart that doubles boss rewards
+        let hasDoubleBossHeart = Array.isArray(game.data.systemHearts) && game.data.systemHearts.some(h => h.id === 'double_boss_rewards');
+
+        // Calculate base rewards
         let credits = Math.round((((game.data.attacksRemaining + game.data.stowsRemaining) * 2) + 5) * game.data.creditsMultiplier);
-        document.querySelector('.collect-credits span').textContent = formatLargeNumber(credits);
         let xp = Math.round(((game.data.class * 10) + (game.data.system * 10)) * game.data.xpMultiplier);
+
+        // Double rewards if boss, double again if system heart is present
+        if (isBoss) {
+            credits *= 2;
+            xp *= 2;
+            if (hasDoubleBossHeart) {
+                credits *= 2;
+                xp *= 2;
+            }
+        }
+
+        document.querySelector('.collect-credits span').textContent = formatLargeNumber(credits);
         document.querySelector('.gain-xp span').textContent = formatLargeNumber(xp);
         document.querySelector('#end-combat').classList.add('shown');
         resetArsenal();
@@ -4070,7 +4098,6 @@ export function populateShopSystemHearts() {
 
     // 1) filter out any heart locked by rank
     const availableHearts = game.systemHearts.filter(heart =>
-        // include if no rank requirement, or requirement ≤ playerRank
         heart.rank == null || heart.rank <= playerRank
     );
 
@@ -4079,9 +4106,18 @@ export function populateShopSystemHearts() {
         return;
     }
 
-    // 2) pick one at random from the filtered list
-    const randomIndex  = Math.floor(randDecimal() * availableHearts.length);
-    const systemHeart  = availableHearts[randomIndex];
+    // 2) use temp.currentSystemHeart if it exists, otherwise randomly select one
+    let systemHeart = game.temp.currentSystemHeart;
+
+    // Check if it's an empty object
+    if (
+        !systemHeart || 
+        (Object.keys(systemHeart).length === 0 && systemHeart.constructor === Object)
+    ) {
+        const randomIndex = Math.floor(randDecimal() * availableHearts.length);
+        systemHeart = availableHearts[randomIndex];
+        game.temp.currentSystemHeart = systemHeart; // Store the selected heart
+    }
 
     // 3) render exactly as before
     const shopSlot = document.querySelector('#shop .system-heart-slot');
@@ -4093,17 +4129,14 @@ export function populateShopSystemHearts() {
     cardElement.dataset.id   = systemHeart.id;
     cardElement.dataset.cost = game.data.systemHeartCost;
 
-    // cost span
     const costSpan = document.createElement('span');
     costSpan.textContent = game.data.systemHeartCost + ' Credits';
     cardElement.appendChild(costSpan);
 
-    // label span
     const labelSpan = document.createElement('span');
     labelSpan.textContent = 'SYSTEM HEART';
     cardElement.appendChild(labelSpan);
 
-    // discovered/undiscovered
     const discoveredSpan = document.createElement('span');
     discoveredSpan.classList.add('discovered-status');
     discoveredSpan.textContent = stats.data.discovered.system_hearts.includes(systemHeart.id)
@@ -4111,7 +4144,6 @@ export function populateShopSystemHearts() {
         : 'Undiscovered';
     cardElement.appendChild(discoveredSpan);
 
-    // tooltip
     cardElement.setAttribute('data-tippy-content', systemHeart.description);
     const tip = tippy(cardElement, { allowHTML: true });
     cardElement._tippyInstance = tip;
@@ -4124,10 +4156,8 @@ export function populateShopSystemHearts() {
         if (game.data.credits >= cost) {
             game.data.credits -= cost;
             applySystemHeart(systemHeart);
-            // remove from the master list so it can't reappear
             game.systemHearts = game.systemHearts.filter(h => h.id !== systemHeart.id);
             shopSlot.innerHTML = '';
-            // set the temp value to false
             game.temp.systemHeartAvailable = false;
         } else {
             message("You cannot afford this system heart.");
@@ -4214,6 +4244,9 @@ function addSystemHeartToGame(systemHeart) {
         case 'booster_sellbacks':
             game.data.boosterSellbacks = true;
             break;
+        case 'double_boss_rewards':
+            game.data.doubleBossRewards = true;
+            break;
     }
 }
 
@@ -4266,7 +4299,7 @@ function populateShopPacks() {
 
     // 1) filter PACK_TYPES by availability based on rank
     const availablePacks = PACK_TYPES.filter(pack => {
-        //if (pack.name === "Supernova Pack" && playerRank <= 0) return false;
+        if (pack.name === "Supernova Pack" && playerRank <= 0) return false;
         if (pack.name === "Stardust Pack"  && playerRank <= 1) return false;
         return true; // all others allowed
     });
@@ -4287,6 +4320,13 @@ function populateShopPacks() {
         if (pack.name === "Armament Pack") pack.cardType  = randFromArray(CARD_TYPES, 1);
         if (pack.name === "Chromatic Pack") pack.cardColor = randFromArray(RAINBOW_ORDER, 1);
 
+        // --- RUNE LOGIC ---
+        // DEV: 50% chance for Rune (set to 0.05 for production)
+        const runeChance = 0.5; // TODO: Set to 0.05 for production
+        const hasRune = randDecimal() < runeChance;
+        pack.hasRune = hasRune; // Optionally store for future logic
+        // --- END RUNE LOGIC ---
+
         const el = document.createElement('div');
         el.className = 'pack ' + size;
         el.dataset.packType = pack.name.replace(/\s+/g, '').toLowerCase();
@@ -4294,6 +4334,7 @@ function populateShopPacks() {
         el.dataset.cost = cost;
         if (pack.cardType)  el.dataset.cardType  = pack.cardType;
         if (pack.cardColor) el.dataset.cardColor = pack.cardColor;
+        if (hasRune) el.dataset.rune = 'true';
 
         // display name
         const nameSpan = document.createElement('span');
@@ -4345,11 +4386,20 @@ function populateShopPacks() {
 
         // adjust tooltip description
         const desc = pack.description
-            .replace(/<span class='choose'>\d+<\/span>/, `<span class='choose'>${chooseAmount}</span>`)
-            .replace(/<span class='pool'>\d+<\/span>/,   `<span class='pool'>${poolAmount}</span>`);
+            .replace(/<span class='choose'>\d+<\/span>/, `<span class='choose'>${chooseAmount}<\/span>`)
+            .replace(/<span class='pool'>\d+<\/span>/,   `<span class='pool'>${poolAmount}<\/span>`);
         el.setAttribute('data-tippy-content', desc);
         const tip = tippy(el, { allowHTML: true });
         el._tippyInstance = tip;
+
+        // --- RUNE VISUAL ---
+        if (hasRune) {
+            const runeDiv = document.createElement('div');
+            runeDiv.className = 'rune-keyword';
+            runeDiv.textContent = 'Rune';
+            el.appendChild(runeDiv);
+        }
+        // --- END RUNE VISUAL ---
 
         // click handler
         el.addEventListener('click', () => {
@@ -4673,28 +4723,20 @@ function openPack(pack, poolAmount, chooseAmount) {
             // Display these booster cards
             selectedBoosters.forEach(booster => {
                 const el   = createCard(booster, 'booster');
-                const cost = parseInt(el.getAttribute('data-cost').replace(/,/g, ''), 10);
             
                 el.addEventListener('click', () => {
-                    // 1) Make sure there’s a free slot
+                    // 1) Make sure there's a free slot
                     const availableSlot = getAvailableSlot(booster.type);
                     if (!availableSlot) {
                         message(`No available ${booster.type} slots.`);
-                        return;  // bail out before spending credits or closing modal
+                        return;  // bail out before closing modal
                     }
             
-                    // 2) Make sure they can afford it
-                    if (game.data.credits < cost) {
-                        message("Not enough credits to purchase this booster.");
-                        return;
-                    }
-            
-                    // 3) All good → add it, deduct credits, refresh UI
+                    // 2) All good → add it and refresh UI
                     addBoosterToSlots(booster);
-                    game.data.credits -= cost;
                     refreshDom();
             
-                    // 4) Close the selection modal
+                    // 3) Close the selection modal
                     const modal = document.getElementById('selection-modal');
                     if (modal) modal.classList.remove('shown');
                 });
@@ -5010,7 +5052,7 @@ function populateShopBoosters() {
         }
     });
 
-    // 2) apply rarity multiplier to each booster’s weight
+    // 2) apply rarity multiplier to each booster's weight
     const boostersWithEffectiveWeights = availableBoosters.map(b => {
         const baseW   = b.weight ?? defaultBaseWeight;
         const rarityW = rarityWeights[b.rarity] ?? 1;

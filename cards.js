@@ -172,13 +172,13 @@ const COMET_CARDS = [
 ];
 
 const PACK_TYPES = [
-    { name: "Galactic Pack", weight: 60, cost: 5, description: "Choose <span class='choose'>1</span> of <span class='pool'>10</span> randomly selected cards from your arsenal to upgrade." },
-    { name: "Nebula Pack", weight: 60, cost: 5, description: "Choose <span class='choose'>1</span> of <span class='pool'>10</span> randomly selected combos to upgrade." },
-    { name: "Supernova Pack", weight: 60, cost: 15, description: "Choose 1 of <span class='pool'>3</span> randomly selected rare boosters." },
-    { name: "Armament Pack", weight: 50, cost: 7, cardType: null, description: "For a randomly selected type, choose <span class='choose'>1</span> to add to your arsenal." },
-    { name: "Chromatic Pack", weight: 50, cost: 7, cardColor: null, description: "For a randomly selected color, choose <span class='choose'>1</span> to add to your arsenal." },
-    { name: "Stardust Pack", weight: 30, cost: 50, description: "Choose 1 of <span class='pool'>3</span> randomly selected rare injectors." },
-    { name: "Special Pack", weight: 20, cost: 20, description: "Choose 1 of <span class='pool'>3</span> randomly selected special cards." },
+    { name: "Galactic Pack", weight: 75, cost: 5, description: "Choose <span class='choose'>1</span> of <span class='pool'>10</span> randomly selected cards from your arsenal to upgrade." },
+    { name: "Nebula Pack", weight: 75, cost: 5, description: "Choose <span class='choose'>1</span> of <span class='pool'>10</span> randomly selected combos to upgrade." },
+    { name: "Supernova Pack", weight: 50, cost: 20, description: "Choose 1 of <span class='pool'>3</span> randomly selected rare boosters." },
+    { name: "Armament Pack", weight: 60, cost: 7, cardType: null, description: "For a randomly selected type, choose <span class='choose'>1</span> to add to your arsenal." },
+    { name: "Chromatic Pack", weight: 60, cost: 7, cardColor: null, description: "For a randomly selected color, choose <span class='choose'>1</span> to add to your arsenal." },
+    { name: "Stardust Pack", weight: 40, cost: 50, description: "Choose 1 of <span class='pool'>3</span> randomly selected rare injectors." },
+    { name: "Special Pack", weight: 30, cost: 20, description: "Choose 1 of <span class='pool'>3</span> randomly selected special cards." },
     { name: "Comet Pack", weight: 20, cost: 20, description: "Choose 1 of <span class='pool'>3</span> randomly selected comet cards." },
     { name: "Cosmos Pack", weight: 10, cost: 25, description: "Choose 1 of <span class='pool'>10</span> randomly selected cards from your arsenal to duplicate." },
 ];
@@ -211,6 +211,7 @@ let SYSTEMHEARTS = [
     {id: 'duplicates', name: 'Duplicate Boosters', description: 'You can now have multiple copies of the same booster activated.', rank: 5},
     {id: 'max_wavelengths', name: 'Max Wavelength Damage', description: 'All cards now have the same base damage as black cards (10).'},
     {id: 'booster_sellbacks', name: 'Booster Sellbacks', description: 'Whenever you destroy a booster, receive a full refund.'},
+    {id: 'double_boss_rewards', name: 'Double Boss Rewards', description: 'Boss battles award double XP and credits. Stacks with the normal boss bonus.'},
 ];
 
 let INJECTORS = [
