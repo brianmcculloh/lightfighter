@@ -121,7 +121,7 @@ function manualLoad() {
         //'add_damage_2000',
     ];
 
-    stats.data.rank = 12; // DEV ONLY: manually set rank to max level
+    //stats.data.rank = 12; // DEV ONLY: manually set rank to max level
 
     if (Array.isArray(boosters) && boosters.length > 0) {
         boosters.forEach(boosterId => {
