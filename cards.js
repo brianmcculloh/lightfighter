@@ -212,6 +212,7 @@ let SYSTEMHEARTS = [
     {id: 'max_wavelengths', name: 'Max Wavelength Damage', description: 'All cards now have the same base damage as black cards (10).'},
     {id: 'booster_sellbacks', name: 'Booster Sellbacks', description: 'Whenever you destroy a booster, receive a full refund.'},
     {id: 'double_boss_rewards', name: 'Double Boss Rewards', description: 'Boss battles award double XP and credits. Stacks with the normal boss bonus.'},
+    {id: 'double_runes', name: 'Double Runes', description: 'Doubles the effects of rune packs (rune effects are quadrupled).', rank: 5},
 ];
 
 let INJECTORS = [

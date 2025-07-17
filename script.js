@@ -8,7 +8,6 @@
  * 
  * PHASE II: BALANCE & PLAYTESTING
  * 
- * TODO: use AI to add runes to packs, which double the pack effects
  * TODO: system heart that doubles effects of runes
  * TODO: Playtest for balance and scaling - check if enemies or boosters need adjusted
  *          -- number of playtests on current iteration: 1
@@ -121,6 +120,8 @@ function manualLoad() {
     let injectors = [
         //'add_damage_2000',
     ];
+
+    stats.data.rank = 12; // DEV ONLY: manually set rank to max level
 
     if (Array.isArray(boosters) && boosters.length > 0) {
         boosters.forEach(boosterId => {
@@ -4321,8 +4322,8 @@ function populateShopPacks() {
         if (pack.name === "Chromatic Pack") pack.cardColor = randFromArray(RAINBOW_ORDER, 1);
 
         // --- RUNE LOGIC ---
-        // DEV: 50% chance for Rune (set to 0.05 for production)
-        const runeChance = 0.5; // TODO: Set to 0.05 for production
+        // 5% chance for Rune
+        const runeChance = 0.05; // Set to 0.05 for 5% chance in production
         const hasRune = randDecimal() < runeChance;
         pack.hasRune = hasRune; // Optionally store for future logic
         // --- END RUNE LOGIC ---
@@ -4334,7 +4335,10 @@ function populateShopPacks() {
         el.dataset.cost = cost;
         if (pack.cardType)  el.dataset.cardType  = pack.cardType;
         if (pack.cardColor) el.dataset.cardColor = pack.cardColor;
-        if (hasRune) el.dataset.rune = 'true';
+        if (hasRune) {
+            el.dataset.rune = 'true';
+            el.style.boxShadow = '0 0 16px 5px white';
+        }
 
         // display name
         const nameSpan = document.createElement('span');
@@ -4649,11 +4653,15 @@ function openPack(pack, poolAmount, chooseAmount) {
             game.data.credits -= game.data.creditsOwed;
             game.data.creditsOwed = 0;
 
-            // Display these cards and allow multiple selections
+            // Determine if this pack is runed
+            const isRuneGalactic = pack.dataset.rune === 'true';
+            let galacticLevelUp = isRuneGalactic ? 2 : 1;
+            if (isRuneGalactic && hasDoubleRuneHeart()) galacticLevelUp *= 2;
+
             selectedCards.forEach(card => {
                 let cardElement = createCard(card);
                 handleSelection(cardElement, function() {
-                    updateCardLevel(card, 1, cardElement);
+                    updateCardLevel(card, galacticLevelUp, cardElement);
                 });
                 itemsContainer.appendChild(cardElement);
             });
@@ -4668,46 +4676,19 @@ function openPack(pack, poolAmount, chooseAmount) {
             game.data.credits -= game.data.creditsOwed;
             game.data.creditsOwed = 0;
 
-            // Display these combo types and allow multiple selections
+            const isRuneNebula = pack.dataset.rune === 'true';
+            let nebulaLevelUp = isRuneNebula ? 2 : 1;
+            if (isRuneNebula && hasDoubleRuneHeart()) nebulaLevelUp *= 2;
+
             selectedComboTypes.forEach(comboType => {
-                //let comboTypeLevel = comboType ? ' ' + numberToRoman(game.comboTypeLevels[comboType].level) : '';
                 let comboTypeLevel = comboType ? ' ' + game.comboTypeLevels[comboType].level : '';
                 let comboElement = document.createElement('div');
                 comboElement.className = 'combo-type card';
                 comboElement.textContent = comboType.replace(/([A-Z])/g, ' $1').trim() + comboTypeLevel;
                 handleSelection(comboElement, function() {
-                    updateComboLevel(comboType, 1)
+                    updateComboLevel(comboType, nebulaLevelUp)
                 });
                 itemsContainer.appendChild(comboElement);
-            });
-            break;
-
-        case 'cosmospack':
-            selectionCancel.classList.remove('shown');
-            // Randomly select cards from the game.arsenal
-            let cosmosCards = randFromArray(game.arsenal, poolAmount);
-
-            game.data.credits -= game.data.creditsOwed;
-            game.data.creditsOwed = 0;
-        
-            // Display these cards and allow the user to select one to duplicate
-            cosmosCards.forEach(card => {
-                let cardElement = createCard(card);
-        
-                handleSelection(cardElement, function() {
-                    // Create a deep copy of the selected card and assign a unique GUID
-                    let duplicatedCard = JSON.parse(JSON.stringify(card));
-                    duplicatedCard.guid = randString();
-        
-                    // Add the duplicated card to the game.arsenal
-                    game.arsenal.push(duplicatedCard);
-        
-                    // Refresh the DOM to reflect the updated arsenal
-                    refreshDom();
-                });
-        
-                // Append the card element to the modal's items container
-                itemsContainer.appendChild(cardElement);
             });
             break;
 
@@ -4720,34 +4701,33 @@ function openPack(pack, poolAmount, chooseAmount) {
             game.data.credits -= game.data.creditsOwed;
             game.data.creditsOwed = 0;
 
-            // Display these booster cards
+            const isRuneSupernova = pack.dataset.rune === 'true';
+            let supernovaChooseAmount = isRuneSupernova ? 2 : 1;
+            if (isRuneSupernova && hasDoubleRuneHeart()) supernovaChooseAmount *= 2;
+            let supernovaSelections = 0;
+
             selectedBoosters.forEach(booster => {
                 const el   = createCard(booster, 'booster');
-            
                 el.addEventListener('click', () => {
-                    // 1) Make sure there's a free slot
                     const availableSlot = getAvailableSlot(booster.type);
                     if (!availableSlot) {
                         message(`No available ${booster.type} slots.`);
-                        return;  // bail out before closing modal
+                        return;
                     }
-            
-                    // 2) All good → add it and refresh UI
                     addBoosterToSlots(booster);
                     refreshDom();
-            
-                    // 3) Close the selection modal
-                    const modal = document.getElementById('selection-modal');
-                    if (modal) modal.classList.remove('shown');
+                    supernovaSelections++;
+                    el.remove();
+                    if (supernovaSelections >= supernovaChooseAmount) {
+                        const modal = document.getElementById('selection-modal');
+                        if (modal) modal.classList.remove('shown');
+                    }
                 });
-            
                 itemsContainer.appendChild(el);
             });            
-            
             break;
 
         case 'stardustpack':
-                // Create a weighted array of rare injectors based on their weights
                 selectionCancel.classList.remove('shown');
                 let weightedInjectors = [];
                 game.injectors.forEach(injector => {
@@ -4761,10 +4741,8 @@ function openPack(pack, poolAmount, chooseAmount) {
                 game.data.credits -= game.data.creditsOwed;
                 game.data.creditsOwed = 0;
             
-                // Shuffle the weighted injectors array
                 weightedInjectors = weightedInjectors.sort(() => 0.5 - randDecimal());
             
-                // Pick the first `poolAmount` unique injectors
                 let selectedInjectors = [];
                 let addedInjectorIds = new Set();
             
@@ -4778,44 +4756,125 @@ function openPack(pack, poolAmount, chooseAmount) {
             
                 selectionModal.classList.add('injectors');
             
-                // Display the selected injectors
+                const isRuneStardust = pack.dataset.rune === 'true';
+            
                 selectedInjectors.forEach(injector => {
                     let cardElement = document.createElement('div');
                     cardElement.className = 'injector card';
-                    cardElement.textContent = prettyName(injector.id); // Format the injector name
-                    cardElement.setAttribute('data-tippy-content', injector.description); // Add tooltip with description
+                    cardElement.textContent = prettyName(injector.id);
+                    cardElement.setAttribute('data-tippy-content', injector.description);
                     let rarityElement = document.createElement('span');
                     rarityElement.textContent = '(' + injector.rarity + ')';
                     cardElement.appendChild(rarityElement);
                     handleSelection(cardElement, function() {
-                        addInjectorToSlots(injector);
+                        const totalSlots = game.slots.injectorSlots;
+                        const usedSlots = game.slots.injectorCards.length;
+                        const freeSlots = totalSlots - usedSlots;
+                        let copiesToAdd = 1;
+                        if (isRuneStardust) {
+                            copiesToAdd = Math.min(2, freeSlots);
+                            if (hasDoubleRuneHeart()) copiesToAdd = Math.min(4, freeSlots);
+                        } else {
+                            copiesToAdd = freeSlots > 0 ? 1 : 0;
+                        }
+                        for (let i = 0; i < copiesToAdd; i++) {
+                            addInjectorToSlots(injector);
+                        }
                     });
                     itemsContainer.appendChild(cardElement);
                 });
             break;
-            
+
         case 'armamentpack':
-            // Display cards of the randomly selected type, one of each color
             selectionCancel.classList.add('shown');
+            const isRuneArmament = pack.dataset.rune === 'true';
+            let armamentCopies = isRuneArmament ? 2 : 1;
+            if (isRuneArmament && hasDoubleRuneHeart()) armamentCopies *= 2;
             RAINBOW_ORDER.forEach(color => {
                 let card = game.cards.find(card => card.type === pack.dataset.cardType && card.color === color);
                 let cardElement = createCard(card);
                 handleSelection(cardElement, function() {
-                    addCard(card.type, card.color);
+                    for (let i = 0; i < armamentCopies; i++) {
+                        addCard(card.type, card.color);
+                    }
                 });
                 itemsContainer.appendChild(cardElement);
             });
             break;
 
         case 'chromaticpack':
-            // Display cards of the randomly selected color, one of each type
             selectionCancel.classList.add('shown');
+            const isRuneChromatic = pack.dataset.rune === 'true';
+            let chromaticCopies = isRuneChromatic ? 2 : 1;
+            if (isRuneChromatic && hasDoubleRuneHeart()) chromaticCopies *= 2;
             CARD_TYPES.forEach(type => {
                 let card = game.cards.find(card => card.type === type && card.color === pack.dataset.cardColor);
                 let cardElement = createCard(card);
                 handleSelection(cardElement, function() {
-                    addCard(card.type, card.color);
+                    for (let i = 0; i < chromaticCopies; i++) {
+                        addCard(card.type, card.color);
+                    }
                 });
+                itemsContainer.appendChild(cardElement);
+            });
+            break;
+
+        case 'cometpack':
+            selectionCancel.classList.remove('shown');
+            let selectedComets = weightedSelect(COMET_CARDS, poolAmount);
+
+            game.data.credits -= game.data.creditsOwed;
+            game.data.creditsOwed = 0;
+
+            const isRuneComet = pack.dataset.rune === 'true';
+            let cometChooseAmount = isRuneComet ? 2 : 1;
+            if (isRuneComet && hasDoubleRuneHeart()) cometChooseAmount *= 2;
+            let cometSelections = 0;
+
+            selectedComets.forEach(comet => {
+                let cardElement = document.createElement('div');
+                cardElement.className = 'comet-card card';
+                cardElement.textContent = prettyName(comet.name);
+                cardElement.addEventListener('click', () => {
+                    selectionModal.classList.remove('shown');
+                    applyCometEffect(comet.name, function() {
+                        cometSelections++;
+                        cardElement.remove();
+                        if (cometSelections < cometChooseAmount) {
+                            selectionModal.classList.add('shown');
+                        } else {
+                            selectionModal.classList.remove('shown');
+                        }
+                    });
+                });
+                itemsContainer.appendChild(cardElement);
+            });
+            break;
+
+        case 'cosmospack':
+            selectionCancel.classList.remove('shown');
+            let cosmosCards = randFromArray(game.arsenal, poolAmount);
+
+            game.data.credits -= game.data.creditsOwed;
+            game.data.creditsOwed = 0;
+        
+            const isRuneCosmos = pack.dataset.rune === 'true';
+            let cosmosCopies = isRuneCosmos ? 2 : 1;
+            if (isRuneCosmos && hasDoubleRuneHeart()) cosmosCopies *= 2;
+        
+            cosmosCards.forEach(card => {
+                let cardElement = createCard(card);
+        
+                handleSelection(cardElement, function() {
+                    for (let i = 0; i < cosmosCopies; i++) {
+                        let duplicatedCard = JSON.parse(JSON.stringify(card));
+                        duplicatedCard.guid = randString();
+                        game.arsenal.push(duplicatedCard);
+                    }
+        
+                    refreshDom();
+                });
+        
                 itemsContainer.appendChild(cardElement);
             });
             break;
@@ -4827,41 +4886,30 @@ function openPack(pack, poolAmount, chooseAmount) {
             game.data.credits -= game.data.creditsOwed;
             game.data.creditsOwed = 0;
 
+            const isRuneSpecial = pack.dataset.rune === 'true';
+            let specialChooseAmount = isRuneSpecial ? 2 : 1;
+            if (isRuneSpecial && hasDoubleRuneHeart()) specialChooseAmount *= 2;
+            let specialSelections = 0;
+
             selectedSpecials.forEach(special => {
                 let cardElement = document.createElement('div');
                 cardElement.className = 'special-card card';
                 cardElement.textContent = prettyName(special.name);
-        
-                // Set tooltip using the description
                 cardElement.setAttribute('data-tippy-content', special.description);
-                // Create a new Tippy instance with the updated description
                 const tooltip = tippy(cardElement, {allowHTML: true});
-                // Store the new Tippy instance for later reference
                 cardElement._tippyInstance = tooltip;
-        
-                // Handle selection and apply effect
-                handleSelection(cardElement, function() {
-                    applySpecialEffect(special.name);
-                }, true); // Allow closing after selecting the final card
-        
-                itemsContainer.appendChild(cardElement);
-            });
-            break;
-            
-        case 'cometpack':
-            selectionCancel.classList.remove('shown');
-            let selectedComets = weightedSelect(COMET_CARDS, poolAmount);
-
-            game.data.credits -= game.data.creditsOwed;
-            game.data.creditsOwed = 0;
-
-            selectedComets.forEach(comet => {
-                let cardElement = document.createElement('div');
-                cardElement.className = 'comet-card card';
-                cardElement.textContent = prettyName(comet.name);
-                handleSelection(cardElement, function() {
-                    applyCometEffect(comet.name);
-                }, true); // Allow closing after selecting the final card
+                cardElement.addEventListener('click', () => {
+                    selectionModal.classList.remove('shown');
+                    applySpecialEffect(special.name, function() {
+                        specialSelections++;
+                        cardElement.remove();
+                        if (specialSelections < specialChooseAmount) {
+                            selectionModal.classList.add('shown');
+                        } else {
+                            selectionModal.classList.remove('shown');
+                        }
+                    });
+                });
                 itemsContainer.appendChild(cardElement);
             });
             break;
@@ -4873,23 +4921,32 @@ function openPack(pack, poolAmount, chooseAmount) {
     selectionModal.classList.add('shown'); // Show the modal
 }
 
-function applyCometEffect(effectName) {
-    let selectionModal = document.querySelector('#selection-modal');
-    let selectionCancel = document.querySelector('#selection-modal .cancel');
-    let itemsContainer = selectionModal.querySelector('.items');
-    itemsContainer.innerHTML = ''; // Clear previous items
+// Add this helper to ensure the inner modal exists
+function ensureInnerModal() {
+    let innerModal = document.getElementById('inner-modal');
+    if (!innerModal) {
+        innerModal = document.createElement('div');
+        innerModal.id = 'inner-modal';
+        innerModal.className = 'modal';
+        innerModal.innerHTML = '<div class="inner-modal-content"></div><div class="button inner-done">Done</div>';
+        document.body.appendChild(innerModal);
+    }
+    return innerModal;
+}
 
-	// Randomly select x cards from the game.arsenal
+// Refactor applyCometEffect to use the inner modal
+function applyCometEffect(effectName, onDone) {
+    const innerModal = ensureInnerModal();
+    const content = innerModal.querySelector('.inner-modal-content');
+    content.innerHTML = '';
+
+    // Randomly select x cards from the game.arsenal
     let selectedCards = randFromArray(game.arsenal, game.data.converts);
     // Display selected cards
     selectedCards.forEach(card => {
         let cardElement = createCard(card);
-        itemsContainer.appendChild(cardElement);
+        content.appendChild(cardElement);
     });
-
-    // TODO: add a button in the container called CONVERT that, when clicked, will convert all of the shown cards to the comet effectName.
-    // if the effectName is plasma_cell, dark_matter, quantum_shard, gravity_wave, or nano_swarm, change the card type and name.
-    // otherwise, if the effectName is a color (red, orange, yellow, green, blue, indigo, violet, white, ultraviolet, or black) change the card color.
 
     // Create the convert button
     let convertButton = document.createElement('div');
@@ -4897,23 +4954,20 @@ function applyCometEffect(effectName) {
     convertButton.textContent = 'CONVERT';
     convertButton.addEventListener('click', function() {
         selectedCards.forEach(card => {
-            // Check if effectName is a type or a color and convert accordingly
-            if (['plasma_cell', 'dark_matter', 'quantum_shard', 'gravity_wave', 'nano_swarm'].includes(effectName)) {
-                // Convert card type
+            if ([
+                'plasma_cell', 'dark_matter', 'quantum_shard', 'gravity_wave', 'nano_swarm'
+            ].includes(effectName)) {
                 card.type = effectName;
                 card.name = prettyName(effectName);
-            } else if (['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet', 'white', 'ultraviolet', 'black'].includes(effectName)) {
-                // Convert card color
+            } else if ([
+                'red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet', 'white', 'ultraviolet', 'black'
+            ].includes(effectName)) {
                 card.color = effectName;
             }
-
-            // Update the card in the game.arsenal array
             let index = game.arsenal.findIndex(c => c.guid === card.guid);
             if (index !== -1) {
                 game.arsenal[index] = card;
             }
-
-            // Reflect changes in the DOM
             let domCard = document.querySelector(`[data-guid="${card.guid}"]`);
             if (domCard) {
                 let domCardType = domCard.querySelector('.type');
@@ -4925,107 +4979,111 @@ function applyCometEffect(effectName) {
                 domCard.setAttribute('data-color', card.color);
             }
         });
-
-        // Optionally, clear and repopulate modal to reflect changes visually
-        itemsContainer.innerHTML = '';
+        content.innerHTML = '';
         selectedCards.forEach(card => {
             let cardElement = createCard(card);
-            itemsContainer.appendChild(cardElement);
+            content.appendChild(cardElement);
         });
-
-        // Remove the convert button after converting
         convertButton.remove();
     });
+    content.appendChild(convertButton);
 
-    // Append the convert button to the modal
-    selectionModal.appendChild(convertButton);
-    selectionCancel.classList.add('shown');
+    // Show the inner modal
+    innerModal.classList.add('shown');
 
+    // Handle Done button
+    const doneBtn = innerModal.querySelector('.inner-done');
+    doneBtn.onclick = () => {
+        innerModal.classList.remove('shown');
+        if (onDone) onDone();
+    };
 }
 
-function applySpecialEffect(effectName) {
-    let selectionModal = document.querySelector('#selection-modal');
-    let selectionCancel = document.querySelector('#selection-modal .cancel');
-    let itemsContainer = selectionModal.querySelector('.items');
-    itemsContainer.innerHTML = ''; // Clear previous items
-	let sortedArsenal = organizeArsenal();
+// Refactor applySpecialEffect to use the inner modal for sub-selections
+function applySpecialEffect(effectName, onDone) {
+    const innerModal = ensureInnerModal();
+    const content = innerModal.querySelector('.inner-modal-content');
+    content.innerHTML = '';
+    let sortedArsenal = organizeArsenal();
 
-	switch(effectName) {
-		case 'foil':
-		case 'holo':
-		case 'sleeve':
-		case 'gold_leaf':
-		case 'texture':
-			const eligibleCards = sortedArsenal.filter(card => !card[effectName]);
-			eligibleCards.forEach(card => {
-				let cardElement = createCard(card);
-				itemsContainer.appendChild(cardElement);
-
-				// Event listener for when a card is clicked
-				cardElement.addEventListener('click', () => {
-					card[effectName] = true; // Set the effect to true for the clicked card
-                    // check if card becomes epic/legendary/mythical
+    switch(effectName) {
+        case 'foil':
+        case 'holo':
+        case 'sleeve':
+        case 'gold_leaf':
+        case 'texture': {
+            const eligibleCards = sortedArsenal.filter(card => !card[effectName]);
+            eligibleCards.forEach(card => {
+                let cardElement = createCard(card);
+                content.appendChild(cardElement);
+                cardElement.addEventListener('click', () => {
+                    card[effectName] = true;
                     refreshCard(card);
-					refreshDom();
-					// Close the selection modal
-					selectionModal.classList.remove('shown');
-				});
-			});
-
-			// Show the selection modal
-			if (eligibleCards.length > 0) {
-				selectionModal.classList.add('shown');
-                selectionCancel.classList.add('shown');
-			} else {
-				message(`All cards already have the ${effectName} effect.`);
-			}
-		break;
-		case 'remove':
-			let removalsCount = 0;
-			let maxRemovals = game.data.removals;
-			// Display the entire sorted game.arsenal for removal selection
-			sortedArsenal.forEach((card) => {
-				let cardElement = createCard(card);
-				itemsContainer.appendChild(cardElement);
-
-				// Add click event listener to handle card removal
-				cardElement.addEventListener('click', () => {
-					if (removalsCount < maxRemovals) {
-						// Find the index of the card in the original game.arsenal using its unique guid
-						const cardIndexInArsenal = game.arsenal.findIndex(c => c.guid === card.guid);
-						if (cardIndexInArsenal !== -1) {
-							game.arsenal.splice(cardIndexInArsenal, 1); // Remove the card from the original game.arsenal
-							cardElement.remove(); // Remove the card element from the display
-							removalsCount++;
-							refreshDom(); // Refresh the DOM to reflect the removal
-
-							// Close the modal if the user has reached the maximum number of removals
-							if (removalsCount === maxRemovals) {
-								selectionModal.classList.remove('shown');
-							}
-						}
-					}
-				});
-			});
-		break;
-		case 'attack':
-			game.data.attacksTotal += 1;
-            selectionModal.classList.remove('shown');
+                    refreshDom();
+                    innerModal.classList.remove('shown');
+                    if (onDone) onDone();
+                });
+            });
+            if (eligibleCards.length > 0) {
+                innerModal.classList.add('shown');
+            } else {
+                message(`All cards already have the ${effectName} effect.`);
+                if (onDone) onDone();
+            }
+            break;
+        }
+        case 'remove': {
+            let removalsCount = 0;
+            let maxRemovals = game.data.removals;
+            sortedArsenal.forEach((card) => {
+                let cardElement = createCard(card);
+                content.appendChild(cardElement);
+                cardElement.addEventListener('click', () => {
+                    if (removalsCount < maxRemovals) {
+                        const cardIndexInArsenal = game.arsenal.findIndex(c => c.guid === card.guid);
+                        if (cardIndexInArsenal !== -1) {
+                            game.arsenal.splice(cardIndexInArsenal, 1);
+                            cardElement.remove();
+                            removalsCount++;
+                            refreshDom();
+                            if (removalsCount === maxRemovals) {
+                                innerModal.classList.remove('shown');
+                                if (onDone) onDone();
+                            }
+                        }
+                    }
+                });
+            });
+            innerModal.classList.add('shown');
+            break;
+        }
+        case 'attack':
+            game.data.attacksTotal += 1;
+            innerModal.classList.remove('shown');
             refreshDom();
-		break;
-		case 'stow':
-			game.data.stowsTotal += 1;
-            selectionModal.classList.remove('shown');
+            if (onDone) onDone();
+            break;
+        case 'stow':
+            game.data.stowsTotal += 1;
+            innerModal.classList.remove('shown');
             refreshDom();
-		break;
+            if (onDone) onDone();
+            break;
         case 'upgrade':
             Object.keys(game.comboTypeLevels).forEach(comboType => {
                 updateComboLevel(comboType, 1)
             });
-            selectionModal.classList.remove('shown');
-            refreshDom();            
-        break;
-	}
+            innerModal.classList.remove('shown');
+            refreshDom();
+            if (onDone) onDone();
+            break;
+    }
+    // Done button for inner modal
+    const doneBtn = innerModal.querySelector('.inner-done');
+    doneBtn.onclick = () => {
+        innerModal.classList.remove('shown');
+        if (onDone) onDone();
+    };
 }
 
 function populateShopBoosters() {
@@ -5716,3 +5774,8 @@ function attachEventListeners() {
 
 // Initial attachment of event listeners
 attachEventListeners();
+
+// Helper to check if the player has the double rune system heart
+function hasDoubleRuneHeart() {
+    return Array.isArray(game.data.systemHearts) && game.data.systemHearts.some(h => h.id === 'double_runes');
+}
